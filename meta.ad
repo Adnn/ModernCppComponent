@@ -1,0 +1,73 @@
+== Goals
+
+* Document our current process to implement, build, and distribute reusable C++ software
+* If possible, get collaborators and experts to review the process to enhance the process and get it closer to the state of the art
+* Control fragmentation: encourage and help others to adopt the process or to adapt it.
+Be it beginners just looking for a "ready-to-use" process, or seasoned users trying to review their own process.
+* Explictly record and discuss all difficulties and sub-optimal aspects in the process, to keep a list, as well as having a concrete starting point to discuss those aspects with the different projects (tools, etc.) involved in the process.
+Additionally, some situations might require co-operation of several projects, thus having an external record not owned by any given project issue-tracker could be beneficial and limit duplication.
+
+== Outline
+
+. Modern {cpp} Component
+.. brief
+.. toc
+.. Introduction
+... Context
+... Motivation
+... Audience
+... Design
+.. The workflows
+... User
+... External developer
+... Contributor
+.. The process
+... Organizing the files
+....  Repository model choice
+....  Filesystem structure
+... Build
+.... Minimal CMake setup
+.... Upstream dependencies
+... Packaging (Downstream dependencies)
+... Automation
+
+=== Section structure
+
+
+- Title
+-- Overview
+-- toc
+-- Section
+-- Section
+...
+
+or 
+
+- Title
+-- Content
+
+
+== Tooling
+
+The content is written in Asciidoc markup, hosted in a github repository, and publication TBD
+(github should render the content, which might be just what is needed)
+
+== Sources
+* CppCon 2017: Mathieu Ropert “Using Modern CMake Patterns to Enforce a Good Modular Design”
+* C++Now 2017: Daniel Pfeifer “Effective CMake"
+* CppCon 2018: Mateusz Pusz “Git, CMake, Conan - How to ship and reuse our C++ projects”
+* CppCon 2018: John Lakos “C++ Modules and Large-Scale Development”
+* The State of Package Management in C++ - Mathieu Ropert [ACCU 2019]
+
+== Braindump
+
+Mention gitflow?
+The folder duplication in libraries (both build and install tree)
+The complication of wanting to work on a few closely related components at the same time: managing upstreams
+
+== TODO
+
+* Define a style guide
+* Find a good name for the process
+* Describe how the process was designed/refined
+

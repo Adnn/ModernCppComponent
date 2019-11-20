@@ -1,0 +1,874 @@
+= Modern C++ Component
+
+An adaptable approach to build and distribute usable C++ software components
+
+== Introduction
+
+=== Context-lite
+
+{cpp} is an ISO standard based on the Abstract Machine, it keeps far from the practical
+and gory details on how to build it, even less how to distribute it.
+
+Building and distribution are the realm of 3rd party actors and tools -distinct from the comitee-
+(Some people from this realm are sitting on the comitee, but this fact does not change the ISO standard scope).
+Thus there is little to no standard prescribed way to go about steps once the code is writen.
+
+=== Motivations
+
+The aim of this document is to gather (and sum-up) in one place the steps allowing to create
+native software with the following properties:
+
+* Cross-platform and _reasonably_ cross-toolset
+* Usable and re-usable
+** By other developers in the same and potentially unrelated organizations
+** By automated processes (e.g. CI)
+* Easy to share
+* Composable
+* Uniform: Both the process and the resulting package have to work great for naively small projects and huge code bases.
+
+In the current era of Modern {cpp}, the langage itself leads a potential change in the mindset of developers using it.
+Those changes are pervading the {cpp} ecosystem and tooling.
+This document does not explore the language itself, but how to actually achieve and take advantage of the above properties by relying on modern tools.
+
+Equally important is hopefully being able to **convey the appropriate mindset** so those properties are both understood and desired.
+
+There is no standard, no undisputed approach, and no silver-bullet.
+But there are solutions with varying level of traction and growth,
+active projects refining themselves, and different levels of practicality and stability.
+By **providing a write-up of an end-to-end (hollistic) approach**, another goal is to try and **attract collaborators**, thus attracting expert-knowledge regarding specific cogs in the system. +
+In addition to support enhancing each step, it could also serve as a repository of the different
+friction-points in the interactions of parts, **recording potential future enhancements**.
+
+Why adhering to a pre-defined process? Theoratically, the properties above could be reached
+via innumerable different ways. +
+In practical situations, each process implements a different trade-off.
+Reaching a satsifying yet adaptable state costs a lot of men-months, and the later the issue is addressed, the costlier putting it in place turns out to be.
+By adopting a common and predefined plan:
+
+* Having *good defaults* saves on initial setup and discussions (i.e. https://www.youtube.com/watch?v=XkDEzfpdcSg&feature=youtu.be&t=195[avoid bikeshedding]). The value added part is the software, not its packaging logic.
+* Having a common base gives better chance at *interoperability*.
+* Someone already *documented the process* for you, and you might not even have to maintain this document.
+
+=== Philosophy
+
+Producing sociable components might require some change in the usual approach:
+it becomes the reponsiblitly of the component itself to take extra measures and precautions in order to be easily buildable, usable and distributable.
+
+This might contrast with a traditional approach where the burden was on downstream(s) to adapt to the libraries it uses,
+which often lead the organizations adhering to this isolation mental model to stay away from external dependencies as much as possible.
+
+=== The best process in the world
+
+> \... actually does not sound anything like this doc.
+
+Yet the Platonic ideal sets the cap.
+
+
+This mythical best system would allow every user to create sociable code by default,
+without wasted effort (Full disclosure: there is intrinsic effort required). +
+It would allow every user to re-use sociable code through well-defined and concise steps,
+without imposing any limitation on usage contexts.
+
+There are software quality principles and metrics to evaluate where a process stands.
+Let's set them as goals for the process:
+
+* Practicality
+* Simplicity and directness
+* https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle[Open-Closed]
+* https://en.wikipedia.org/wiki/Don%27t_repeat_yourself[DRY]
+* Separation of concerns
+
+The actual system will not be able to strictly enforce all goals at once, but they are
+parameters to consider along the way, to make informed engineering decisions and trade-offs.
+
+=== {cpp} special case ===
+
+Many high level langages are able to provide sociable components quite naturally, without requiring to first agree on some external process.
+
+In addition to the fact that the {cpp} standard does not make any prescription, {cpp} (as other native languages) is a special case.
+One of the reasons is that it is both non trivial to distribute a project that builds easily on all environments, while it is at the same
+time close to impossible to distribute pre-built objects for all environments due to the combinatorial explosion of build parameters:
+
+* Project versions
+* Static / Shared libraries
+* ABIs (compilers, and versions)
+* Standard lib
+* The gazillion compilation flags
+** Debug, Release, MinSize, and a few others
+** Optimization level
+** ...
+* The upstream diamond (two separate components might rely on the same upstream library)
+* The tools
+* ...
+
+== An actual system
+
+This section describe an end-to-end approach to deliver modern {cpp} components : {Sonat}
+
+> link:https://www.youtube.com/watch?v=S4QSKLXdTtA&feature=youtu.be&t=134[Please do not partition our C++ development environment even more]
+
+The tools recommendation is the same as in the linked video (there is hope for a status quo):
+[cols=2*]
+|===
+|VCS
+|*git*
+
+|Build system management
+|*CMake*
+
+|Package management
+|*Conan*
+|===
+
+=== Content structure
+
+==== Repositories
+
+The first practical decision when starting a new project from sratch will be the granularity of the repository. https://medium.com/@johnclarke_82232/mono-or-multi-repo-6c3674142dfc[The monorepo, the mutirepo (repo-per-component)], and the reality in between.
+
+One of monorepo's advantages is its trivial to setup and use with most toolsets, avoiding most complications to locate dependent components.
+
+One of mutlirepo's advantages is about automation: +
+The easily detectable "atomic unit of change" is the VCS commit (or push).
+Where there is only one component in the repo, there is no question as to which component processes should be triggered
+when change is detected.
+
+> Generally our tooling works at repo level [medium link]
+
+.Implementing conan recipes for 3rd party software
+[%collapsible]
+====
+An organization relying on Conan has dependencies overs software not offering Conan package. Ideally, each time a recipe
+code is pushed back to the central repo, the organization's CI would pick it and publish the updated recipe.
+If a single repositories host tens of recipes, the process will either be naive and wasteful, or
+will require additional logic to rebuild only the edited recipe(s).
+====
+
+As a general rule of thumb, smaller granularity gives better control and flexibility.
+Another illustration is how monorepo makes it harder for a single team to change compiler in isolation, even in the context of a stable ABI.
+Since the new compiler might be more strict regarding C++ standard, it could raise new errors and warnings in the codebase.
+It will be enough for the team to fix its own component in a multirepo situation, whereas monorepo would force the change to happen for all teams at once.
+
+
+==== In practice
+
+* Pure monorepo is not scalable (i.e. in the context of sociable code).
+The axiom being that "upstream cannot and should not know all downstreams". +
+* On the other hand, strictly one repo per component is not practical in the absence of tooling [note].
+The idea of manually having to clone and separately build a handful of independent repos
+for even medium-sized applications should trigger the maintainability alarm.
+
+Different approaches and tools exist to manage multi-repos. Git link:https://github.blog/2016-02-01-working-with-submodules[`submodule`] is an easily accessible tool, since it is integrated with core Git installations. Yet, a reccurent criticism is submodules do not scale well as they are unpractical to use.
+In particular, the less orthogonal the submodules/module, the more this can become a problem.
+
+[NOTE]
+.Orthogonality measure
+====
+Likeliness that changes in entity B would coherently happen alongside changes in entity A.
+====
+
+The proposed system recognizes the existence of both, placing them as extremas on a line
+on which organization are allowed to move as the development progresses.
+
+.Organically growing codebase
+[%collapsible]
+====
+Application B can start as a library (libA) and its frontend (B).
+Seeing how they are lock-stepped, it makes sense to host both in the same repo (monorepo).
+Then, identified generic functionalities can be moved out of libA in libCommon. libCommon can
+start its existence in the same repo, and later on move to a separate repo to be offered to other internal projects and/or 3rd parties. There is value in adaptability.
+====
+
+.In a nutshell
+****
+The actual system should be able to accomodate _monorepos_ and _multi-repos_, as well
+as the reality in between: let's call it _anyrepo_. It does not allow for circular dependencies. +
+The formalization is that repositories can contain 1..N components, and can depend on
+0..M other repositories. Repositories dependencies are a DAG.
+****
+
+==== Filesystem organization
+
+Once defined which component(s) will be held inside a repository, it must be organized in a file and folders hierarchy.
+
+{Sonat} proposes the following structure:
+
+ CMakeLists.txt (cmr)
+ README.{xy}
+ toolA-folder/
+ toolB-folder/
+ src/
+     CMakeLists.txt (cmp)
+     apps/
+         B/
+             CMakeLists.txt (cmc-B)
+             main.cpp
+             appclass.h
+             appclass.cpp
+             ...
+     libs/
+         A/
+             A/
+                 CMakeLists.txt (cmc-A)
+                 libclass.h
+                 libclass.cpp
+                 ...
+                 subcomponent/
+                     ...
+ resources/
+
+// TODO
+.TODO
+****
+Is a sibling desirable for "plugins" alongside "libs"?
+****
+
+// TODO
+.TODO
+****
+See [] for the rationale behind duplicated "A/" folder.
+****
+
+===== README
+
+The `README`, even a few lines, makes the most difference when a repository is seen from the first time.
+This is the formal social introduction.
+
+As the rest of the code, it should be treated as an evolving piece of information.
+An efficient README outline:
+
+. The first paragraph **describe the functionality of the project / components**.  As well as the intended audience.
+
+. Optional examples.
+
+. **Usage section**, with sub-sections for relevant situations. Classically:
+.. _building_
+.. _installing_
+.. _using_
+
+. Pointers to the documentation(s).
+
+. Section explaining the contribution model, issue reporting, question asking, or explicitly stating they are not welcome.
+
+
+=== Building code
+
+==== Portability
+
+Standard C++ is a cross platform language, with an ever growing ecosystem of tools. Yet the limiting factor in this portability often turns out to be the build system.
+
+An important challenges is achieving a cross-platform and cross-toolset (code editors, compilers and analyzers) build system, while keeping it DRY.
+
+.DON'T: Many project files and component configurations in the repo
+[%collapsible]
+====
+Committing a "project file" per combination would violate DRYness, making it very likely to introduce errors for the system that are not in use when transformations are applied.
+Moreover, it becomes a burden to add other build systems as soon as the project has reached even moderate size.
+====
+
+
+link:https://cmake.org/[CMake] is a free and open-source build management system.
+It places itself one level of abstraction above the makefile/IDE project files:
+it can be seen (at first) as a project file generator for different toolsets.
+
+.TODO
+****
+Provide CMake usage statistics and evolution
+****
+
+==== Building with {Sonat}
+
+When it comes to building, the process requires those essential features:
+
+* Cross-platform and cross toolset
+* Ability to satisfy upstream dependencies
+* Out of source builds
+* Versionable build process
+* Component level granularity for builds
+* Uniform interface to trigger build of selected components, configurations, and combinations of both
+
+CMake is able to address these different points.
+It relies on `CMakeLists.txt` files, with optional `xxx.cmake` accompanying scripts.
+Those are plain text files, thus manageable as any other source file by the versioning system.
+
+Conceptually, {Sonat} relies on three categories of `CMakeLists.txt` files:
+
+* The root file (cmr), located at the root of the repository.
+* The per-component `CMakeLists.txt` (cmc-x), at the root of each individual component folder
+* The plumbing `CMakeLists.txt` (cmp)
+
+===== Root CMakeLists
+
+It is responsible for initializing CMake and expressing what common to all or most components.
+
+Base:
+
+.CMakeLists.txt
+[source, cmake]
+----
+##
+## CMake initialization
+##
+cmake_minimum_required(VERSION 3.15)
+
+# Setting the VERSION on root project() will populate CMAKE_PROJECT_VERSION
+project(MyRepository
+        VERSION "${BUILD_VERSION}")
+
+##
+## Common build options
+##
+set(CMAKE_CXX_STANDARD 14)
+
+##
+## Include components
+##
+add_subdirectory(src)
+----
+
+With the `add_subdirectory(src)` directive, CMake executes the named `CMakeLists.txt` in the `src/` subdirectory (cmp).
+
+==== Plumbing CMakeLists
+
+This file will add the individual components.
+It can use basic logic to conditionally add some components (e.g. Making the "Tests" application optional).
+
+Base:
+
+.src/CMakeLists.txt
+[source, cmake]
+----
+add_subdirectory(libs/A/A)
+
+add_subdirectory(apps/B)
+
+option(BUILD_tests)
+if (BUILD_tests)
+ add_subdirectory(apps/tests)
+endif()
+----
+
+===== Per-component CMakeLists
+
+One "leaf" CMakeLists is present in each component, included by (cmp).
+It is responsible for actually describing how the component is built.
+
+The process relies on the nested project name as the component's name, and additionnally defines several variable for internal use.
+This is to ensure a DRY solution, in particular when it comes to lists.
+
+Base for a component without upstream dependencies:
+
+.src/libs/A/A/CMakeLists.txt
+[source, cmake]
+----
+project(A VERSION "${CMAKE_PROJECT_VERSION}")
+
+set(${PROJECT_NAME}_HEADERS
+    bar.h
+    foo.h
+)
+
+set(${PROJECT_NAME}_SOURCES
+    bar.cpp
+    foo.cpp
+)
+
+# Creates the library target
+add_library(${PROJECT_NAME}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES})
+
+add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+# Defines target requirements
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        "$<BUILD_INTERFACE:../"
+    INTERFACE
+        "$<INSTALL_INTERFACE:include/${TARGET}>")
+
+# Defines target properties
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                          VERSION "${${PROJECT_NAME}_VERSION}")
+----
+
+
+.Modern CMake
+****
+[[old-cmake-vars]]Some years ago, CMake moved away from routinely holding all the properties and requirements (include path, upstream libraries paths, build flags, etc.) in variables and manually setting them at each folder level, toward what is known as Modern CMake:
+CMake targets represent the individual software components, encapsulating their requirements and propagating these requirements to downstream projects. +
+Daniel Pfeifer offers a great presentation of this topic in the video link:https://www.youtube.com/watch?v=bsXLMQ6WgIk[Effective CMake (C++now 2017)].
+****
+
+The base snippet above does a few things, and is hopefully direct about each:
+
+[cols="2a, 3a"]
+|===
+|----
+project(A VERSION "${CMAKE_PROJECT_VERSION}")
+----
+|Implicitly defines the variables:
+
+* `PROJECT_NAME` initialized to "A"
+* `${PROJECT_NAME}_VERSION` initialized to the version provied to the root project() call
+
+|
+----
+set(${PROJECT_NAME}_HEADERS ...)
+
+set(${PROJECT_NAME}_SOURCES ...)
+----
+|Keeps separate list of headers and sources for the current component.
+
+See link:https://cmake.org/cmake/help/latest/command/list.html[`list`] command for advanced operations.
+|
+----
+add_library(${PROJECT_NAME}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES})
+----
+
+|Defines a target named `A` for this component with `add_library`.
+It would build fine without listing the headers, yet having them there makes sure they show up in IDEs.
+
+|----
+add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+----
+|Defines an alias `ns::A` for the target, so `A` is accessible to sibling components under namespace `ns`
+
+|
+----
+target_include_directories(${PROJECT_NAME}
+ PUBLIC
+     "$<BUILD_INTERFACE:../"
+ INTERFACE
+     "$<INSTALL_INTERFACE:include/${TARGET}>")
+----
+|Define a build requirement: the include path.
+
+Without this directive, this component could directly include its own headers via relative path (e.g. `#include "bar.h"`).
+
+This directive ensures uniformity, permitting both the component source themselves and its downstream users to include the component headers via compiler's include path (e.g. `#include <bar.h>`). +
+For downstream, this is a requirement, while it is a convenience for the current component (most usefull when including headers in other directories).
+
+[[cmake-requirements-scopes]]Requirements usually can are set on 1 out of 3 scopes:
+
+* `PRIVATE` will be used when building the component itself
+* `INTERFACE` will be used when building downstreams users of the component
+* `PUBLIC` is a shortcut which means both `PRIVATE` and `INTERFACE`
+
+**Important note**: This describe the high level semantic from CMake user perspective. +
+In practice, `PRIVATE` requirement might still be propagated (in whole or in parts) to downstreams when the implementation dictates so.
+ For example this is mandatory when linking to a static library target A, itself privately linking to another static library target B.
+ Even though downstream code is not aware of B, linking downstream to A will require linking it to symbols in B.
+see https://cmake.org/pipermail/cmake/2016-May/063400.html.
+
+|
+----
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                          VERSION "${${PROJECT_NAME}_VERSION}")
+----
+|Defines a target property: the target version.
+
+Many link:https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html#target-properties[properties] are available for targets.
+Some properties are actually requirements that can be set with `set_target_properties` or with a dedicated CMake function.
+|===
+
+[CAUTION]
+.Explicitly listing files
+====
+Since the dawn of CMake and to the day of this writing, the official doc link:https://cmake.org/cmake/help/latest/command/file.html#filesystem[advises against ``GLOB``ing] to collect all sources files automatically instead of listing them expicitly.
+The argument regarding the fact CMake will need the file to be touched anyway to regenerate might be seen as week (if the files are listed explicitly, the file has to be touched anyway). The second argument has deeper implications, plus:
+
+* Explicit is better than implicit
+* It makes it possible to add files conditionally depending on the target system, build parameters, etc., and any combination of those (which would become hell with GLOB)
+
+This is a domain were tooling could alleviate the pain.
+====
+
+====== Executable CMake target
+
+Applications are created via link:https://cmake.org/cmake/help/latest/command/add_executable.html[`add_executable`]. When making a native GUI application link:https://cmake.org/cmake/help/latest/prop_tgt/WIN32_EXECUTABLE.html#prop_tgt:WIN32_EXECUTABLE[`WIN_32`] and/or link:https://cmake.org/cmake/help/latest/prop_tgt/MACOSX_BUNDLE.html#prop_tgt:MACOSX_BUNDLE[`MACOSX_BUNDLE`] should be added after the application name.
+
+====== Header only CMake target
+
+Header only libraries are called link:https://cmake.org/cmake/help/latest/command/add_library.html#id6[Interface Libraries] in CMake.
+Since header only components are not built themselves, they do not have `PRIVATE` requirement but only `INTERFACE`, hence the name. +
+They are added via `add_library(${PROJECT_NAME} INTERFACE)`, and cannot list the headers as source files.
+
+[TIP]
+====
+CMake generated IDE projects show listed sources in the IDE UI, yet none are listed for interface libraries.
+A workaround is to create a _dummy_ link:https://cmake.org/cmake/help/latest/command/add_custom_target.html[custom target], whose sole puprose it to show up in the IDE.
+----
+add_custom_target(${PROJECT_NAME}_ide
+                  SOURCES ${${PROJECT_NAME}_HEADERS})
+----
+====
+
+==== Use upstream dependencies
+
+The previous entry describes the process to build a component without upstream dependencies.
+This section adds upstream dependencies, showing how to build a component which might re-use something out of the standard library.
+
+===== Finding the dependencies
+
+CAUTION: The direct approach described here is only used to introduce the necessary notions.
+The actual approach prescribed by the process is described later, and might appear less direct due to limitations in the tools we are using.
+
+CMake find upstream depencies through invocation of link:https://cmake.org/cmake/help/latest/command/find_package.html[find_package] command.
+This is a central command in CMake, with extensive documentation with important information for project maintainers (even though, strictly following the process should make it work "out of the black box").
+
+
+.Modern CMake
+****
+This command has two modes
+
+link:https://cmake.org/cmake/help/v3.16/command/find_package.html#id2[`Module`]:: is relying on some external "Find" file (several are distributed with CMake), which traditionnally <<old-cmake-vars, populated variables>>.
+It can nonetheless create IMPORTED targets, as is the case with FindBoost.
+link:https://cmake.org/cmake/help/v3.16/command/find_package.html#full-signature-and-config-mode[`Config`]:: should be the preferred approach when available, but requires supports from the upstream component.
+
+All components created following {Sonat} are located via config mode.
+****
+
+**In the per-component `CMakeLists.txt` (cmc-)**, one invocation per upstream dependency, of the form:
+
+----
+find_package(UpstreamName [version [EXACT]] [REQUIRED])
+----
+
+`REQUIRED`:: is optional, but should appear most of the time. That is, unless the current component can build without this dependency (the less probable situation). It allows the overall process to fail early (at CMake configuration time, instead of build time).
+
+`version`:: can be specified to match only starting from a given version number of the dependency. `EXACT` additional keyword makes it that only the exact version is accepted.
+
+
+A second type of package can be distinguished, which propose <<Multiple components,
+multiple components>> to be included separately. In this case, the components to find are listed after `COMPONENTS` keywoard (or `OPTIONAL_COMPONENTS` for non-required components).
+The syntax becomes:
+
+----
+find_package(UpstreamName [version [EXACT]] [REQUIRED] [COMPONENTS component1 component2])
+----
+
+[NOTE]
+.Locating upstream dependencies in the root `CMakeLists.txt`
+====
+Some componentized projects locate the dependenices in (cmr), potentially removing repeated invocations of `find_package` for requirements common to multiple components under the same repository. +
+The proposed solution instead makes each component responsible to locate its own dependencies.
+
+The finer granularity ease potential relocation of components in other repositories, and allows each component to behave more independantly.
+This will also enables a better contained <<Packaging,packaging process>>.
+====
+
+.TODO
+****
+Understand why Mateusz Pusz proposes that each component can be built in isolation, without necessarely relying on the root `CMakeLists.txt`.
+****
+
+
+===== Use the dependencies
+
+Once CMake found the packages, they must be explicitly marked as dependencies for the added target(s). We will consider the modern case, where packages are found as link:https://cmake.org/cmake/help/latest/command/add_library.html#imported-libraries[`IMPORTED` targets].
+
+Stating the dependency relation is done via the CMake function link:https://cmake.org/cmake/help/latest/command/target_link_libraries.html[`target_link_libraries`].
+
+----
+target_link_libraries(${PROJECT_NAME}
+                      <PRIVATE|PUBLIC|INTERFACE> [ns::]UpstreamTarget [ns::]::OtherUpstream [...]
+                      [...])
+----
+
+Even though its name might seem too narrow compared to its actual function, this command actually provides all usage requirements for the upstream targets, in addition to the linked to binary:
+
+* Include folders
+* Compilation flags and definitions
+* ...
+* Propagation of usage requirements for upstream's upstreams, recursively
+
+The scope of the linkage has the <<cmake-requirements-scopes, usual requirement scope meaning>>.
+
+TIP: Even though a syntax without specifying the scope is available, always explictly provide onefor easier maintenabilty.
+
+===== Putting it together
+
+The updated leaf `CMakeLists.txt` able to directly use dependencies would look something like:
+
+.src/libs/A/A/CMakeLists.txt
+[source, cmake]
+[subs=+quotes]
+----
+project(A VERSION "${CMAKE_PROJECT_VERSION}")
+
+set(${PROJECT_NAME}_HEADERS
+    bar.h
+    foo.h
+)
+
+set(${PROJECT_NAME}_SOURCES
+    bar.cpp
+    foo.cpp
+)
+
+*find_package(UpstreamOne REQUIRED)
+find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS CompA CompB)
+find_package(UpstreamThree 3.2.5 EXACT REQUIRED)*
+
+# Creates the library target
+add_library(${PROJECT_NAME}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES})
+
+add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+# Defines target requirements
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        "$<BUILD_INTERFACE:../"
+    INTERFACE
+        "$<INSTALL_INTERFACE:include/${TARGET}>")
+
+*target_link_libraries(${PROJECT_NAME}
+                      PUBLIC nsOne::UpstreamOne nsTwo::CompA nsTwo::CompB
+                      PRIVATE nsThree::UpstreamThree)*
+
+# Defines target properties
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                          VERSION "${${PROJECT_NAME}_VERSION}")
+----
+
+
+==== Packaging
+
+The previous section describes how a component can depend on others: this is the consumer side of the DAG connection. +
+To complete the process, it must describes how to make a component that can be used following the steps in <<Use upstream dependencies, previous section>>: the provider side of the DAG connection.
+
+===== Installing the component files
+
+The CMake infrastructure as described up to this point covers the basic needs of a project to build in the _build tree_, i.e. under a build directory as defined when invoking CMake. +
+There is a second notion of _install tree_, a folder where the components is deployed when invoking the `install` build target implicilty created by CMake.
+
+NOTE: link:https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html[CMAKE_INSTALL_PREFIX] CMake variable controls the base folder (prefix) where the installation takes place. It is important to explicitly define it to avoid the default behaviour of installing system-wide.
+
+The different signatures for link:https://cmake.org/cmake/help/v3.16/command/install.html?highlight=install[install] command provide control about which files are deployed when `install` target is built.
+
+In particular, most of the times installing a component will mean deploying:
+
+built binaries:: `install(TARGETS ${PROJECT_NAME})`
+header files::
++
+----
+install(FILES ${${PROJECT_NAME}_HEADERS}
+        DESTINATION include/${PROJECT_NAME}/${PROJECT_NAME})
+----
+
+.Modern(er) CMake
+****
+Until CMake 3.14, it was mandatory to specify a `DESTINATION` when installing any `TARGET` type. CMake now takes a default location from link:https://cmake.org/cmake/help/v3.14/module/GNUInstallDirs.html#module:GNUInstallDirs[GNUInstallDirs] for the most usual types.
+****
+
+.TODO
+****
+link to the why duplicated folder
+****
+
+===== Making a CMake package
+
+<<Installing the component files, Installation>> isolated all the essential files constituting a component.
+The developed component now has to be made into a link:https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#package-layout[CMake config-file package] (this link provides a good description). This will allow to find and use it.
+
+The package provided by {Sonat} will be usable both from the build-tree (for developers working directly on the component as well as its downstream(s)), and from the install-tree (covering local build-and-installation, as well as <<Distribution, package manager distribution>> of the component).
+
+The process relies on CMake export-set.
+
+An export for the current target is created by editing the first `install` invocation as follows:
+
+[subs=+quotes]
+----
+install(TARGETS ${PROJECT_NAME} *EXPORT ${PROJECT_NAME}Targets*)
+----
+
+This export-set is then dumped as cmake files in both build and install trees:
+
+[source, cmake]
+----
+# build tree
+export(EXPORT ${PROJECT_NAME}Targets
+       FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+       NAMESPACE ns::)
+
+# install tree
+install(EXPORT ${PROJECT_NAME}Targets
+        FILE ${PROJECT_NAME}Targets.cmake
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}
+        NAMESPACE ns::)
+----
+
+CAUTION: This uses the root `project()` name (in cmr) as the package name, not the current target name.
+This allows to handle the <<Multiple components>> case.
+
+Calls to `find_package()` in downstream will
+link:https://cmake.org/cmake/help/latest/command/find_package.html#full-signature-and-config-mode[search "for a file called <PackageName>Config.cmake or <lower-case-package-name>-config.cmake"].
+The code above made files named _${PROJECT_NAME}Target.cmake_, the _${PROJECT_NAME}Config.cmake_ file must be created to include this previous file.
+
+At the same time, it is possible to add basic version checks with the file generated by
+link:https://cmake.org/cmake/help/latest/module/CMakePackageConfigHelpers.html#command:write_basic_package_version_file[write_basic_package_version_file]
+command from `CMakePackageConfigHelpers` module.
+
+[source, cmake]
+----
+# Generate config file in the build tree
+configure_file(${CMAKE_SOURCE_DIR}/PackageConfig.cmake.in
+               ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+               @ONLY)
+
+# Generate the version file in the build tree
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+                                 VERSION ${PROJECT_VERSION}
+                                 COMPATIBILITY AnyNewerVersion)
+
+# Install the config and version files over to the install tree
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+              ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
+----
+
+Which requires the following template file to be added at the project's root:
+
+.PackageConfig.cmake.in
+[source, cmake]
+----
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+----
+
+NOTE: It currently seems this file introduces an extra indirection for no reason, yet it will grow in later steps.
+
+===== Putting it together
+
+The updated leaf `CMakeLists.txt` able to produce a CMake package for a single component repository would look something like:
+
+.src/libs/A/A/CMakeLists.txt
+[source, cmake]
+[subs=+quotes]
+----
+project(A VERSION "${CMAKE_PROJECT_VERSION}")
+
+set(${PROJECT_NAME}_HEADERS
+    bar.h
+    foo.h
+)
+
+set(${PROJECT_NAME}_SOURCES
+    bar.cpp
+    foo.cpp
+)
+
+find_package(UpstreamOne REQUIRED)
+find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS CompA CompB)
+find_package(UpstreamThree 3.2.5 EXACT REQUIRED)
+
+# Creates the library target
+add_library(${PROJECT_NAME}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES})
+
+add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+# Defines target requirements
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        "$<BUILD_INTERFACE:../"
+    INTERFACE
+        "$<INSTALL_INTERFACE:include/${TARGET}>")
+
+target_link_libraries(${PROJECT_NAME}
+                      PUBLIC nsOne::UpstreamOne nsTwo::CompA nsTwo::CompB
+                      PRIVATE nsThree::UpstreamThree)
+
+# Defines target properties
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                          VERSION "${${PROJECT_NAME}_VERSION}")
+
+*install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets)
+install(FILES ${${PROJECT_NAME}_HEADERS}
+        DESTINATION include/${PROJECT_NAME}/${PROJECT_NAME})
+
+# build tree
+export(EXPORT ${PROJECT_NAME}Targets
+       FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+       NAMESPACE ns::)
+configure_file(${CMAKE_SOURCE_DIR}/PackageConfig.cmake.in
+               ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+               @ONLY)
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+                                 VERSION ${PROJECT_VERSION}
+                                 COMPATIBILITY AnyNewerVersion)
+
+# install tree
+install(EXPORT ${PROJECT_NAME}Targets
+        FILE ${PROJECT_NAME}Targets.cmake
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}
+        NAMESPACE ns::)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+              ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})*
+----
+
+.Friction point
+****
+This task appears very generic, yet requires to add any line of codes, repeated for *in each leaf `CMakeLists.txt`.
+It will even grow further as we introduce "dependency find forwarding".
+For the moment, it is recommended to factorize this logic in a custom CMake function, yet it should ideally
+be discussed with CMake experts and maintainers to see if this situation can be streamlined.
+****
+
+.TODO
+****
+Link to "dependency forwarding"
+****
+
+===== Multiple components
+
+* Package config generated at the root, including individual component configs
+* The version file is generated at the top level
+
+
+
+==== Distribution
+
+==== Automated QA
+
+Continuous Integration
+
+==== Dependencies
+
+=== Sharing code
+
+CMake packages, conan recipe
+
+== Workflows
+
+This is a continuous spectrum, where it is possible to indentify classic situations:
+* Component developer
+* Developer contributor and user
+* 3rd-party developer user
+* Public
+
+== Component developer
+
+This scenario refers to developing the component in isolation.
+
+Upstream dependencies are available as installed components (not accessed from their buid tree).
+This scenario is adressed naturally by the system described above
+
+Upstream dependencies are potentially installed through `conan install $path_to_conanfile`.
+Assuming the cmake_paths generator, all dependencies can be found during CMake configuration
+by providing conan_paths.cmake
+`mkdir build && build && cmake .. -DPROJECT_xxx_INCLUDE=build/conan_paths.cmake`
+
+== Contributor developer/user
