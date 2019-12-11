@@ -57,7 +57,7 @@ it becomes the reponsiblitly of the component itself to take extra measures and 
 This might contrast with a traditional approach where the burden was on downstream(s) to adapt to the libraries it uses,
 which often lead the organizations adhering to this isolation mental model to stay away from external dependencies as much as possible.
 
-=== The best process in the world
+==== The best process in the world
 
 > \... actually does not sound anything like this doc.
 
@@ -65,7 +65,7 @@ Yet the Platonic ideal sets the cap.
 
 
 This mythical best system would allow every user to create sociable code by default,
-without wasted effort (Full disclosure: there is intrinsic effort required). +
+without wasted effort (Of course, there is intrinsic effort required). +
 It would allow every user to re-use sociable code through well-defined and concise steps,
 without imposing any limitation on usage contexts.
 
@@ -81,6 +81,8 @@ Let's set them as goals for the process:
 The actual system will not be able to strictly enforce all goals at once, but they are
 parameters to consider along the way, to make informed engineering decisions and trade-offs.
 
+
+[[special_case]]
 === {cpp} special case ===
 
 Many high level langages are able to provide sociable components quite naturally, without requiring to first agree on some external process.
@@ -101,11 +103,23 @@ time close to impossible to distribute pre-built objects for all environments du
 * The tools
 * ...
 
-== An actual system
+=== Audience
+
+.TODO
+****
+****
+
+=== Design
+
+.TODO
+****
+****
+
+== The process
 
 This section describe an end-to-end approach to deliver modern {cpp} components : {Sonat}
 
-> link:https://www.youtube.com/watch?v=S4QSKLXdTtA&feature=youtu.be&t=134[Please do not partition our C++ development environment even more]
+> link:https://www.youtube.com/watch?v=S4QSKLXdTtA&feature=youtu.be&t=134[Please do not partition our {cpp} development environment even more]
 
 The tools recommendation is the same as in the linked video (there is hope for a status quo):
 [cols=2*]
@@ -120,7 +134,7 @@ The tools recommendation is the same as in the linked video (there is hope for a
 |*Conan*
 |===
 
-=== Content structure
+=== Structuring content
 
 ==== Repositories
 
@@ -150,7 +164,7 @@ Since the new compiler might be more strict regarding C++ standard, it could rai
 It will be enough for the team to fix its own component in a multirepo situation, whereas monorepo would force the change to happen for all teams at once.
 
 
-==== In practice
+===== In practice
 
 * Pure monorepo is not scalable (i.e. in the context of sociable code).
 The axiom being that "upstream cannot and should not know all downstreams". +
@@ -200,8 +214,8 @@ Once defined which component(s) will be held inside a repository, it must be org
  src/
      CMakeLists.txt (cmp)
      apps/
-         B/
-             CMakeLists.txt (cmc-B)
+         C/
+             CMakeLists.txt (cmc-C)
              main.cpp
              appclass.h
              appclass.cpp
@@ -215,6 +229,11 @@ Once defined which component(s) will be held inside a repository, it must be org
                  ...
                  subcomponent/
                      ...
+         B/
+             B/
+                 CMakeLists.txt (cmc-B)
+                 utilities.h
+                 ...
  resources/
 
 // TODO
@@ -253,7 +272,7 @@ An efficient README outline:
 
 === Building code
 
-==== Portability
+==== Portability considerations
 
 Standard C++ is a cross platform language, with an ever growing ecosystem of tools. Yet the limiting factor in this portability often turns out to be the build system.
 
@@ -306,29 +325,23 @@ Base:
 .CMakeLists.txt
 [source, cmake]
 ----
-##
-## CMake initialization
-##
+# CMake initialization
 cmake_minimum_required(VERSION 3.15)
 
 # Setting the VERSION on root project() will populate CMAKE_PROJECT_VERSION
 project(MyRepository
         VERSION "${BUILD_VERSION}")
 
-##
-## Common build options
-##
+# Common build options
 set(CMAKE_CXX_STANDARD 14)
 
-##
-## Include components
-##
+# Include components
 add_subdirectory(src)
 ----
 
 With the `add_subdirectory(src)` directive, CMake executes the named `CMakeLists.txt` in the `src/` subdirectory (cmp).
 
-==== Plumbing CMakeLists
+===== Plumbing CMakeLists
 
 This file will add the individual components.
 It can use basic logic to conditionally add some components (e.g. Making the "Tests" application optional).
@@ -435,7 +448,7 @@ It would build fine without listing the headers, yet having them there makes sur
 |----
 add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 ----
-|Defines an alias `ns::A` for the target, so `A` is accessible to sibling components under namespace `ns`
+|[[cmake-alias-rationale]]Defines an alias `ns::A` for the target, so `A` is accessible to sibling components under namespace `ns`
 
 |
 ----
@@ -454,11 +467,11 @@ For downstream, this is a requirement, while it is a convenience for the current
 
 [[cmake-requirements-scopes]]Requirements usually can are set on 1 out of 3 scopes:
 
-* `PRIVATE` will be used when building the component itself
-* `INTERFACE` will be used when building downstreams users of the component
+* `PRIVATE` will be used when building the component itself, i.e. *build specification*
+* `INTERFACE` will be used when building downstreams users of the component, i.e. *usage requirements*
 * `PUBLIC` is a shortcut which means both `PRIVATE` and `INTERFACE`
 
-**Important note**: This describe the high level semantic from CMake user perspective. +
+CAUTION: [[cmake-private-might-forward]]This describe the high level semantic from CMake user perspective. +
 In practice, `PRIVATE` requirement might still be propagated (in whole or in parts) to downstreams when the implementation dictates so.
  For example this is mandatory when linking to a static library target A, itself privately linking to another static library target B.
  Even though downstream code is not aware of B, linking downstream to A will require linking it to symbols in B.
@@ -508,7 +521,7 @@ add_custom_target(${PROJECT_NAME}_ide
 ----
 ====
 
-==== Use upstream dependencies
+==== Using upstream dependencies: CMake
 
 The previous entry describes the process to build a component without upstream dependencies.
 This section adds upstream dependencies, showing how to build a component which might re-use something out of the standard library.
@@ -568,11 +581,12 @@ Understand why Mateusz Pusz proposes that each component can be built in isolati
 ****
 
 
-===== Use the dependencies
+===== Consuming the dependencies
 
-Once CMake found the packages, they must be explicitly marked as dependencies for the added target(s). We will consider the modern case, where packages are found as link:https://cmake.org/cmake/help/latest/command/add_library.html#imported-libraries[`IMPORTED` targets].
+Once CMake found the packages, they must be explicitly marked as dependencies for the added target(s).
+We will consider the modern case, where packages are found as link:https://cmake.org/cmake/help/latest/command/add_library.html#imported-libraries[`IMPORTED` targets].
 
-Stating the dependency relation is done via the CMake function link:https://cmake.org/cmake/help/latest/command/target_link_libraries.html[`target_link_libraries`].
+Stating the direct dependency relation is done via the CMake function link:https://cmake.org/cmake/help/latest/command/target_link_libraries.html[`target_link_libraries`].
 
 ----
 target_link_libraries(${PROJECT_NAME}
@@ -589,7 +603,7 @@ Even though its name might seem too narrow compared to its actual function, this
 
 The scope of the linkage has the <<cmake-requirements-scopes, usual requirement scope meaning>>.
 
-TIP: Even though a syntax without specifying the scope is available, always explictly provide onefor easier maintenabilty.
+TIP: Even though a syntax without specifying the scope is available, always explictly provide the scope for easier maintainabilty.
 
 ===== Putting it together
 
@@ -631,7 +645,8 @@ target_include_directories(${PROJECT_NAME}
 
 *target_link_libraries(${PROJECT_NAME}
                       PUBLIC nsOne::UpstreamOne nsTwo::CompA nsTwo::CompB
-                      PRIVATE nsThree::UpstreamThree)*
+                      PRIVATE nsThree::UpstreamThree
+                      INTERFACE ns::B)*
 
 # Defines target properties
 set_target_properties(${PROJECT_NAME}
@@ -639,13 +654,16 @@ set_target_properties(${PROJECT_NAME}
                           VERSION "${${PROJECT_NAME}_VERSION}")
 ----
 
+NOTE: It is also possible to specify normal (non-imported) targets defined by other components in the same repository, as is the case in this example with `ns::B`.
+For uniformity, we are using the `ALIAS`ed target for B (following <<cmake-alias-rationale, the rationale>>.)
 
-==== Packaging
+
+=== Packaging components (becoming an upstream dependency): CMake
 
 The previous section describes how a component can depend on others: this is the consumer side of the DAG connection. +
 To complete the process, it must describes how to make a component that can be used following the steps in <<Use upstream dependencies, previous section>>: the provider side of the DAG connection.
 
-===== Installing the component files
+==== Installing the component files
 
 The CMake infrastructure as described up to this point covers the basic needs of a project to build in the _build tree_, i.e. under a build directory as defined when invoking CMake. +
 There is a second notion of _install tree_, a folder where the components is deployed when invoking the `install` build target implicilty created by CMake.
@@ -674,7 +692,7 @@ Until CMake 3.14, it was mandatory to specify a `DESTINATION` when installing an
 link to the why duplicated folder
 ****
 
-===== Making a CMake package
+==== Preparing a CMake package
 
 <<Installing the component files, Installation>> isolated all the essential files constituting a component.
 The developed component now has to be made into a link:https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#package-layout[CMake config-file package] (this link provides a good description). This will allow to find and use it.
@@ -702,12 +720,9 @@ export(EXPORT ${PROJECT_NAME}Targets
 # install tree
 install(EXPORT ${PROJECT_NAME}Targets
         FILE ${PROJECT_NAME}Targets.cmake
-        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}
+        DESTINATION lib/cmake/${PROJECT_NAME}
         NAMESPACE ns::)
 ----
-
-CAUTION: This uses the root `project()` name (in cmr) as the package name, not the current target name.
-This allows to handle the <<Multiple components>> case.
 
 Calls to `find_package()` in downstream will
 link:https://cmake.org/cmake/help/latest/command/find_package.html#full-signature-and-config-mode[search "for a file called <PackageName>Config.cmake or <lower-case-package-name>-config.cmake"].
@@ -733,7 +748,7 @@ write_basic_package_version_file(${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersio
 # Install the config and version files over to the install tree
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
               ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
+        DESTINATION lib/cmake/${PROJECT_NAME})
 ----
 
 Which requires the following template file to be added at the project's root:
@@ -746,7 +761,10 @@ include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 
 NOTE: It currently seems this file introduces an extra indirection for no reason, yet it will grow in later steps.
 
-===== Putting it together
+NOTE: `AnyNewerVersion` can be replaced by any valid value for
+link:https://cmake.org/cmake/help/v3.14/module/CMakePackageConfigHelpers.html#command:write_basic_package_version_file[the `COMPATIBLITY` argument].
+
+==== Putting it together
 
 The updated leaf `CMakeLists.txt` able to produce a CMake package for a single component repository would look something like:
 
@@ -786,7 +804,8 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
                       PUBLIC nsOne::UpstreamOne nsTwo::CompA nsTwo::CompB
-                      PRIVATE nsThree::UpstreamThree)
+                      PRIVATE nsThree::UpstreamThree
+                      INTERFACE ns::B)
 
 # Defines target properties
 set_target_properties(${PROJECT_NAME}
@@ -812,34 +831,820 @@ write_basic_package_version_file(${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersio
 # install tree
 install(EXPORT ${PROJECT_NAME}Targets
         FILE ${PROJECT_NAME}Targets.cmake
-        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}
+        DESTINATION lib/cmake/${PROJECT_NAME}
         NAMESPACE ns::)
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
               ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})*
+        DESTINATION lib/cmake/${PROJECT_NAME})*
 ----
 
 .Friction point
 ****
-This task appears very generic, yet requires to add any line of codes, repeated for *in each leaf `CMakeLists.txt`.
-It will even grow further as we introduce "dependency find forwarding".
+This task appears to be generic, yet requires to add many line of codes, repeated in each leaf `CMakeLists.txt`.
+This boilerplate will grow bigger as <<Find upstream dependencies from packages, dependency find forwarding>> is introduced. +
 For the moment, it is recommended to factorize this logic in a custom CMake function, yet it should ideally
 be discussed with CMake experts and maintainers to see if this situation can be streamlined.
 ****
 
-.TODO
+==== Multiple components in a single CMake package
+
+The approach described above will produce a CMake package with the name of the leaf project (`A`, in this specific case).
+This is satisfying for single component repositories, yet a complication arises in the case of multiple components per repo.
+
+When applied in a repository containing many components, this produces as many packages.
+This implies downstream would issue a distinct `find_package()` to find each required component. +
+Yet, CMake would still install all components from the repository under the common path prefix `CMAKE_INSTALL_PREFIX`.
+Due to the `find_package()` link:https://cmake.org/cmake/help/latest/command/find_package.html#search-procedure[search procedure],
+this would imply providing CMake with one distinct hint for each component, in each upstream repository.
+
+Instead, {Sonat} relies on the ability of `find_package()` to locate several components under a top-level package name: +
+Each leaf CMake project will map to a component, and the top level `project()` name will map to the package name. +
+This will notably allow to locate *all components* in *all repositories* by providing *a single CMake hint*.
+(leveraging the  `<prefix>/<name>*/(lib/<arch>|lib*|share)/cmake/<name>*/` search entry).
+
+An additional CMake config file must be issued, with the name of the top level project.
+This process will fit naturally in the top-level CMake file:
+
+.CMakeLists.txt
+[source, cmake]
+[subs=+quotes]
+----
+# CMake initialization
+cmake_minimum_required(VERSION 3.15)
+
+# Setting the VERSION on root project() will populate CMAKE_PROJECT_VERSION
+project(MyRepository
+        VERSION "${BUILD_VERSION}")
+
+# Common build options
+set(CMAKE_CXX_STANDARD 14)
+
+# Include components
+add_subdirectory(src)
+
+*# Multi-component package
+# Generate the root config and version check in the build tree
+configure_file(${${CMAKE_SOURCE_DIR}/ComponentPackageRootConfig.cmake.in
+               ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
+               @ONLY)
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
+                                 VERSION ${CMAKE_PROJECT_VERSION}
+                                 COMPATIBILITY AnyNewerVersion)
+
+# Install the root config file over to the install tree
+install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
+              ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})*
+----
+
+CAUTION: This uses the root `project()` name as the package name.
+
+Relying on the additional template file to exist at the project's root:
+
+.ComponentPackageRootConfig.cmake.in
+[source, cmake]
+----
+if (NOT @PACKAGE_NAME@_FIND_COMPONENTS)
+    set(@PACKAGE_NAME@_NOT_FOUND_MESSAGE "The '@PACKAGE_NAME@' package requires at least one component")
+    set(@PACKAGE_NAME@_FOUND False)
+    return()
+endif()
+
+include(CMakeFindDependencyMacro)
+foreach(module ${@PACKAGE_NAME@_FIND_COMPONENTS})
+    set (_config_location "${CMAKE_CURRENT_LIST_DIR}")
+    # find_dependency should forward the QUIET and REQUIRED arguments
+    find_dependency(${module} CONFIG
+                    PATHS "${_config_location}"
+                    NO_DEFAULT_PATH)
+    unset(_config_location)
+    if (NOT ${module}_FOUND)
+        if (@PACKAGE_NAME@_FIND_REQUIRED_${module})
+            string(CONCAT _@PACKAGE_NAME@_NOTFOUND_MESSAGE
+                   "Failed to find @PACKAGE_NAME@ component \"${module}\" "
+                   "config file at \"${_config_location}\"\n")
+        elseif(NOT @PACKAGE_NAME@_FIND_QUIETLY)
+            message(WARNING "Failed to find @PACKAGE_NAME@ component \"${module}\" "
+                             "config file at \"${_config_location}\"")
+        endif()
+    endif()
+endforeach()
+
+if (_@PACKAGE_NAME@_NOTFOUND_MESSAGE)
+    set(@PACKAGE_NAME@_NOT_FOUND_MESSAGE "${_@PACKAGE_NAME@_NOTFOUND_MESSAGE}")
+    set(@PACKAGE_NAME@_FOUND False)
+endif()
+----
+
+NOTE: Execution of this Config script might be recursive via the find_depency call,
+in cases where components in the same project depend on each other.
+Since all invocations occur in the same "variable scope", the unset(_config_location) would also
+erase the value in the "calling context", even if unset would occur after the loop completes.
+For this reason, re-set `_config_location` variable at each iteration.
+
+The template above relies on the config files stil produced and installed by each individual component to locat them,
+via the call to link:https://cmake.org/cmake/help/latest/module/CMakeFindDependencyMacro.html[`find_dependency()`].
+
+This multi-component transformation also induces two changes in the leaf CMakeLists.txt compared to what was presented above:
+
+* The version file is already generated at the top level, no need to version components individually
+* The install destination must be adapted to match the root project name.
+
+.src/libs/A/A/CMakeLists.txt
+[source, cmake]
+[subs=+quotes]
+----
+project(A VERSION "${CMAKE_PROJECT_VERSION}")
+
+set(${PROJECT_NAME}_HEADERS
+    bar.h
+    foo.h
+)
+
+set(${PROJECT_NAME}_SOURCES
+    bar.cpp
+    foo.cpp
+)
+
+find_package(UpstreamOne REQUIRED)
+find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS CompA CompB)
+find_package(UpstreamThree 3.2.5 EXACT REQUIRED QUIET)
+
+# Creates the library target
+add_library(${PROJECT_NAME}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES})
+
+add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+# Defines target requirements
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        "$<BUILD_INTERFACE:../"
+    INTERFACE
+        "$<INSTALL_INTERFACE:include/${TARGET}>")
+
+target_link_libraries(${PROJECT_NAME}
+                      PUBLIC nsOne::UpstreamOne nsTwo::CompA nsTwo::CompB
+                      PRIVATE nsThree::UpstreamThree
+                      INTERFACE ns::B)
+
+# Defines target properties
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                          VERSION "${${PROJECT_NAME}_VERSION}")
+
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets)
+install(FILES ${${PROJECT_NAME}_HEADERS}
+        DESTINATION include/${PROJECT_NAME}/${PROJECT_NAME})
+
+# build tree
+export(EXPORT ${PROJECT_NAME}Targets
+       FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+       NAMESPACE ns::)
+configure_file(${CMAKE_SOURCE_DIR}/PackageConfig.cmake.in
+               ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+               @ONLY)
+*# Removed lines*
+
+# install tree
+install(EXPORT ${PROJECT_NAME}Targets
+        FILE ${PROJECT_NAME}Targets.cmake
+        DESTINATION lib/cmake/*${CMAKE_PROJECT_NAME}*
+        NAMESPACE ns::)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+        *# Removed line*
+        DESTINATION lib/cmake/*${CMAKE_PROJECT_NAME}*)
+----
+
+==== Finding upstream dependencies from a CMake package
+
+The current CMake code allows downstreams to find requested components in a package, each component
+ in turn forwarding its requirements as well as requirements from its own upstream dependencies:
+ the requirements are transitively forwarded by a recursive traversal of the upstream dependencies graph.
+
+Yet, for this exhaustive processus to take place, each upstream must be found before it is expressed as a direct dependency on a target
+(expressed via `target_link_libraries` for dependencies found as `IMPORTED` targets).
+
+When implementing a component following {Sonat}, all direct dependencies are found in the component's leaf `CMakeLists.txt`, which takes care of the first level of dependency.
+Yet, those direct dependencies might have their own dependencies, which are no directly found in the current `CMakeLists.txt`.
+
+CAUTION: The `xxxTarget.cmake` file generated by CMake for the direct dependencie does not find its direct dependencies.
+
+To be properly *self-contained*, a CMake package *must find its direct dependencies*.
+Issuing the necessary `find_` commands link:https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file[is a responsability left to the package developer].
+The documentation recommends to find the dependencies for the packaged component directly in its `xxxConfig.cmake` file.
+Yet, explicitly writing the `find_` calls in both the left `CMakeLists.txt` and the `xxxConfig.cmake` would be *a major violation of DRY*.
+
+{Sonat} improvises a solution to keep a single instance of the list only using CMake facilities.
+The calls to `find_package` are moved away from the leaf `CMakeLists.txt` to a new file `CMakeFinds.txt` with a the following occurences wrapped in `@` pairs:
+
+* `find_package`
+* `REQUIRED`
+* `QUIET`
+
+.src/libs/A/A/CMakeFind.txt
+[source, cmake]
+----
+@find_package@(UpstreamOne @REQUIRED@)
+@find_package@(UpstreamTwo 1.0 @REQUIRED@ COMPONENTS CompA CompB)
+@find_package@(UpstreamThree 3.2.5 EXACT @REQUIRED@ @QUIET@)
+----
+
+NOTE: `CMakeFinds.txt` is not a standard CMake file.
+
+CAUTION: The documentation also implies that _only_ `PUBLIC` dependencies must be found for downstreams. Yet, <<cmake-private-might-forward, as seen earlier>>, this might also be the case for some `PRIVATE` dependencies, for example static libraries.
+
+In `CMakeLists.txt`, the `find_package()` calls are replaced with configuration of the above and execution of the result:
+
+[source, cmake]
+----
+function(local_find)
+    set (REQUIRED "REQUIRED")
+    set (QUIET "QUIET")
+    set (find_package "find_package")
+    configure_file(CMakeFinds.cmake.in CMakeFinds.cmake @ONLY)
+    include(${CMAKE_CURRENT_BINARY_DIR}/CMakeFinds.cmake)
+endfunction()
+local_find()
+----
+
+NOTE: The sole purpose of defining a function here instead of inlining the content is to scope the defined variable to this block only.
+This function should likely be factorized outside of any leaf `CMakeLists.txt` and be reused.
+
+Effectively, this generates a file with a content strictly equal to what was removed from the leaf `CMakeLists.txt`, and includes it: functionally equivalent.
+It will now be possible to reuse this information in the `AConfig.cmake` file after configuring it with different substitutions.
+
+Yet, this does not adress the case of internal dependencies, in the current example `A` having a requirement for `ns::B`.
+Since those targets are already defined under the same repository / same root `CMakeLists.txt`, they are not found via calls to `find_package` in their sibling components.
+On the other hand, when exporting a `xxxConfig.cmake` file, those sibling targets are not defined anymore.
+The package developer must once again take measures to make sure they are explicitly found.
+
+[[cmake-internal-dependencies-lists]]{Sonat} avoids duplication by defining re-usable list(s) of internal dependencies in the leaf `CMakeLists.txt`:
+
+[source, cmake]
+[subs=+quotes]
+----
+*set(${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES
+    ns::B)*
+
+#...
+
+target_link_libraries(${PROJECT_NAME}
+                      PUBLIC nsOne::UpstreamOne nsTwo::CompA nsTwo::CompB
+                      PRIVATE nsThree::UpstreamThree
+                      *INTERFACE ${${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES}*)
+----
+
+This also achieves functional equivalence to the previous solution, with the added ability to reuse this information for the generated `AConfig.cmake` file.
+
+Now, the dependencies information has to be made available and consummed by the package `AConfig.cmake` file.
+
+===== Making dependency information available
+
+Following link:https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file[recommendations from the official documentation],
+the package will find its upstream dependencies via the `find_dependency()` macro instead of the `find_package()` function.
+This macro notably forwards `QUIET` and `REQUIRED` arguments, so they should not be writen explicitly.
+
+This is achieved by configuring the `CMakeFinds.cmake.in` template with different substitutions, in particular no substitution for `@REQUIRED@` nor `@QUIET@`:
+
+[source, cmake]
+----
+function(config_find)
+    set (find_package "find_dependency")
+    # Configure in build tree
+    configure_file(CMakeFinds.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake @ONLY)
+endfunction()
+config_find()
+----
+
+NOTE: The resulting configured file appears at the root of the binary directory, instead of in the current binary directory, as was the case with `local_find()`
+
+This new file has to be deployed to the install tree:
+
+[source, cmake]
+[subs=+quotes]
+----
+    install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+            # Optional version file if single component repository
+            *${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake*
+            DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
+----
+
+The root template `PackageConfig.cmake.in` has to be edited to include this file:
+
+.PackageConfig.cmake.in
+[source, cmake]
+[subs=+quotes]
+----
+*include(CMakeFindDependencyMacro) # Provides find_dependency() macro
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@FindUpstream.cmake" OPTIONAL)
+@FIND_INTERNAL_COMPONENTS@*
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
+----
+
+`FIND_INTERNAL_COMPONENTS` must be defined to an instruction finding the components in the <<cmake-internal-dependencies-lists, list(s) of internal dependencies>>.
+This takes place in the leaf `CMakeLists.txt`:
+
+[source, cmake]
+[subs=+quotes]
+----
+function(config_find)
+    set (find_package "find_dependency")
+    configure_file(CMakeFinds.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake @ONLY)
+
+    *list(JOIN ${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES " " _joined_components)
+    set(FIND_INTERNAL_COMPONENTS
+        "find_dependency(${CMAKE_PROJECT_NAME} CONFIG COMPONENTS ${_joined_components})")
+    configure_file(${CMAKE_SOURCE_DIR}/PackageConfig.cmake.in
+                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+                   @ONLY)*
+endfunction()
+config_find()
+----
+
+NOTE: `configure_file(...PackageConfig.cmake.in ...)` was moved inside this function, to see the variable.
+
+==== Putting it together
+
+The install and packaging logic proposed by {Sonat} is now complete, which gives the following final leaf `CMakeLists.txt` for a multi-components repository:
+
+.src/libs/A/A/CMakeLists.txt
+[source, cmake]
+[subs=+quotes]
+----
+project(A VERSION "${CMAKE_PROJECT_VERSION}")
+
+set(${PROJECT_NAME}_HEADERS
+    bar.h
+    foo.h
+)
+
+set(${PROJECT_NAME}_SOURCES
+    bar.cpp
+    foo.cpp
+)
+
+*function(local_find)
+    set (REQUIRED "REQUIRED")
+    set (QUIET "QUIET")
+    set (find_package "find_package")
+    configure_file(CMakeFinds.cmake.in CMakeFinds.cmake @ONLY)
+    include(${CMAKE_CURRENT_BINARY_DIR}/CMakeFinds.cmake)
+endfunction()
+local_find()*
+
+*set(${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES
+    ns::B)*
+
+# Creates the library target
+add_library(${PROJECT_NAME}
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES})
+
+add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+# Defines target requirements
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        "$<BUILD_INTERFACE:../"
+    INTERFACE
+        "$<INSTALL_INTERFACE:include/${TARGET}>")
+
+target_link_libraries(${PROJECT_NAME}
+                      PUBLIC nsOne::UpstreamOne nsTwo::CompA nsTwo::CompB
+                      PRIVATE nsThree::UpstreamThree
+                      INTERFACE *${${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES}*)
+
+# Defines target properties
+set_target_properties(${PROJECT_NAME}
+                      PROPERTIES
+                          VERSION "${${PROJECT_NAME}_VERSION}")
+
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets)
+install(FILES ${${PROJECT_NAME}_HEADERS}
+        DESTINATION include/${PROJECT_NAME}/${PROJECT_NAME})
+
+# build tree
+export(EXPORT ${PROJECT_NAME}Targets
+       FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+       NAMESPACE ns::)
+*function(config_find)
+    set (find_package "find_dependency")
+    configure_file(CMakeFinds.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake
+                   @ONLY)
+
+    list(JOIN ${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES " " _joined_components)
+    set(FIND_INTERNAL_COMPONENTS
+        "find_dependency(${CMAKE_PROJECT_NAME} CONFIG COMPONENTS ${_joined_components})")
+    configure_file(${CMAKE_SOURCE_DIR}/PackageConfig.cmake.in
+                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+                   @ONLY)
+endfunction()
+config_find()*
+
+# install tree
+install(EXPORT ${PROJECT_NAME}Targets
+        FILE ${PROJECT_NAME}Targets.cmake
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}
+        NAMESPACE ns::)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+        *${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake*
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
+----
+
+
+.Friction point: Lengthy boilerplate and hackish workarounds
 ****
-Link to "dependency forwarding"
+As already evoked, the leaf `CMakeLists.txt` now contains a lot of generic boilerplate, which should at least *be factorized away in a function*.
+
+Is there a canonical way to reduce this ?
+Would there be interest in turning the repetitive code into an official CMake macro?
+Even the explicit code is able to adapt to many more different situations, it feels like this case might be a sane default starting point for modern component C++ libraries.
+
+Additionally, the current solution to keep the list of external and internal dependencies DRY is a hack, which might be wastefull
+(all the dependencies will be "found" by the package consumers, even the `PRIVATE` dependencies that are actually not forwarded):
+
+What is the rationale for not having the automatic `xxxTarget.cmake` code generation not handle the `find_` directly?
+Could CMake be extended so the actual list of internal and external dependencies *which actually need to be found found by consumers* can be deduced automatically for the packaged target?
 ****
 
-===== Multiple components
+.Friction point: find_dependency may have contradictory documentation, and might not behave as expected
+****
+See: https://stackoverflow.com/q/58221190/1027706/Users/adn/Desktop/untitled\ folder /Users/adn/Desktop/test
 
-* Package config generated at the root, including individual component configs
-* The version file is generated at the top level
+In short, `find_dependency(B)` indeed forwards `REQUIRED` from the calling `find_package(A)`, which makes the call fails in B, without the promised diagnostic mentioning that "A cannot be used without B".
+
+A more "natural" approach might actually be not to forward it, since the "REQUIRED" actually only applies to the calling `find_package`, which might have independently `REQUIRED` and optional dependencies.
+****
+
+.Friction point: Usage of custom CMake variables
+****
+{Sonat} current leaf CMakeScripts rely on defining several custom variables.
+Yet, different talks regarding modern CMake deprecate the use of custom variables
+(see link:https://youtu.be/bsXLMQ6WgIk?t=830[Daniel Pfeifer example]).
+Yet, in the absence of a specialized handling of headers and internal target dependencies, as well as more integrated handling of package upstream dependencies,
+this use of variable seems like a better alternative than DRY violations.
+****
 
 
+=== Distribution: Conan
 
-==== Distribution
+Making the package available as easily as possible to its entire intended audience is the next goal.
+
+[NOTE]
+====
+Here, audience is to be taken broadly:
+
+* Collaborators (Developers, Testers, etc.)
+* Clients
+* Automated processes (CI, CD, etc.)
+====
+
+Distributing the package itself is one step, yet the bigger picture is about satisfying its dependencies.
+
+==== Motivations
+
+For code to actually become sociable, it needs to scale all the way from using a handfull of dependencies, to being just one component in the middle of a many-thousands dependencies graph.
+
+It is a known approach to see collaborators locally deploy each dependency manually (via compilation or package manager requests).
+This remains manageable if the dependency chain is very shallow, or that most direct dependencies are actually well behaved socialble components.
+
+To ease such steps, CMake facilities exist, able to automatically retrieve / build dependencies.
+Yet, those automation facilities are usually limited in the sense that each project has only a local visibility of its direct dependencies, not the whole-picture dependency graph.
+
+The central argument would be link:https://en.wikipedia.org/wiki/Separation_of_concerns[*separation of concerns*]:
+
+{Sonat} relies on CMake to do one thing well for us:: describe the local build process for our component(s) in the repository in a portable, tool and platform agnostic textual format. +
+Dependencies management is a separate goal:: retrieving all the artifacts for the dependencies, while handling recursion through the upstream graph (and all the complication that might bring, like diamond sub-graphs)
+
+When it comes to handling depencencies, the scalable solution is to use on a package manager. For {Sonat}, it should offer those essential features:
+
+* Cross-platform and cross-toolset
+* Versionable with the code
+* Testable
+* Handle versioning
+* Ability to generate a the complete (recursive) dependency graph, and handle duplicated dependencies in different versions
+* Usable by developers, automated processes, and end-users.
+* Good defaults, with advanced customization
+* Artifacts caching and sharing (for time-consuming builds and space-consuming resulting binaries)
+* First-class support for the specificity of {cpp} (native) code, see <<special_case, {cpp} special case>>
+
+To address this separate goal, {Sonat} relies on link:https://conan.io/[Conan], self-dubbed _the C / C++ Package Manager for Developers_.
+
+NOTE: Conan is cross-toolset in two ways: it offers link:https://docs.conan.io/en/latest/integrations.html[integrated support for many major tools],
+while also allowing to easily issue system commands to handle specific situations and non-modern code repositories.
+Importantly, it offers excellent link:https://docs.conan.io/en/latest/integrations/build_system/cmake.html[first-class support for CMake with different generators],
+making it an excellent choice to distribute CMake based repositories.
+
+NOTE: Conan :link:https://docs.conan.io/en/latest/getting_started.html[Getting Started] offers a good first-time walkthrough.
+
+NOTE: link:https://youtu.be/bsXLMQ6WgIk?t=2967[Daniel Pfeifer's requirements for a package manager] can be satisfied via Conan.
+
+==== Adding Conan recipe
+
+Conan relies on *recipes*, either simple declarative `conanfile.txt`, or both declarative and imperative (and greatly customizable) `conanfile.py`.
+Conan can follow recipes to produce *packages* (the resuting artifact) that can be cached and distributed, and directly retrieved by consumers to satisfy dependencies (aleviating the need to build locally).
+
+Recipes are fully contained, notably providing:
+
+* Recipe meta-information
+* Package "variability", via options and settings
+* link:https://docs.conan.io/en/latest/reference/conanfile/attributes.html#requires[Code dependencies] and link:https://docs.conan.io/en/latest/reference/conanfile/attributes.html#build-requires[Build dependencies]
+* Build procedure
+* Packaging procedure
+* Resulting link:https://docs.conan.io/en/latest/reference/conanfile/methods.html#package-info[package-consumer instructions], allowing to use the package
+
+{Sonat} implements a single recipe by repository, independently of the number of components.
+It can be placed at the root of the repository, yet storing it in a separate `conan` folder allows to group all Conan related functionalities in one place (e.g. testing)
+
+conan/conanfile.py
+[source, python]
+----
+from conans import ConanFile, CMake, tools
+
+
+class ExampleConan(ConanFile):
+    # Recipe meta-information
+    name = "example"
+    license = "MIT"
+    url = "..."
+    description = "A Conan recipe for {Sonat} sample repository"
+    topics = ("demonstration")
+
+    # Package variability:
+    # Changing those values will result in distinct packages for the same recipe
+    settings = "os", "compiler", "build_type", "arch"
+    options = {
+        "shared": [True, False],
+        "build_tests": [True, False],
+    }
+    default_options = {
+        "shared": False,
+        "build_tests": False,
+    }
+
+    # Code dependencies
+    requires = "upstreamone/1.0@one/stable",
+               "upstreamtwo/[>1.0]@two/stable",
+               "upstreamthree/[~=3.2.5]@three/stable"
+
+    # Build dependencies
+    #   CMake will not need to be installed to build the project
+    #   And if it was installed in a non-compatible version, this will take precedence anyway
+    build_requires = "cmake_installer/3.15.4@conan/stable"
+
+    # (overridable) defaults for consumers
+    build_policy = "missing"
+    generators = "cmake_paths", "cmake"
+
+
+    # Build procedure: code retrieval
+    #   Git's repository origin remote and its current revision are captured by recipe export
+    scm = {
+        "type": "git",
+        "subfolder": "cloned_repo",
+        "url": "auto",
+        "revision": "auto",
+        "submodule": "recursive",
+    }
+
+
+    # shared CMake configuration
+    def _configure_cmake(self):
+        cmake = CMake(self)
+        cmake.definitions["BUILD_tests"] = self.options.build_tests
+        cmake.configure(source_folder="cloned_repo")
+        return cmake
+
+
+    # Build procedure: actual build
+    def build(self):
+        cmake = self._configure_cmake()
+        cmake.build()
+
+
+    # Packaging procedure
+    def package(self):
+        cmake = self._configure_cmake()
+        cmake.install()
+
+
+    # Package-consumer instructions
+    def package_info(self):
+        self.cpp_info.libs = tools.collect_libs(self)
+----
+
+This recipe has several sections, yet each have low complexity.
+In particular, the build and packaging procedures are short, thanks to link:https://docs.conan.io/en/latest/reference/build_helpers/cmake.html[first class integration of CMake in Conan]:
+
+. In each case, a `CMake` object is instantiated, variables defined from the provided settings and options, then it is configured.
+. `build()` or `install()` method is invoked accordingly. Packaging leverages the installation logic provided by CMake through the `install` target.
+
+CAUTION: {Sonat} introduces a `cloned_repo` subfolder to clone into.
+Invoking `conan install`, Conan will copy the content of its source folder directly at the root of the build folder.
+If we did not clone in a subfolder, the different files at the root of the repository would appear directly at the root of the build folder, which could augment the risk of filename collision.
+In other words, it ensures an _out of source build_, with the specificity that the source folder is nested under the build folder.
+
+NOTE: The `shared` option and `build_type` setting are common in recipes, thus Conan implicilty forwards the corresponding definitions to the CMake object.
+On the other hand, the custom `build_tests` option is manually forwarded. This explicit approach allows complete customization of the CMake variables.
+The documentation provides link:https://docs.conan.io/en/latest/reference/build_helpers/cmake.html#definitions[the list of automatic variables].
+
+==== Taking a step back
+
+As Conan package manager was introduced, now is a good time to take a look at the overall picture:
+
+* The repository contains a project, which must be built to produce artifacts. With {Sonat}, *CMake* manages (is) the build system.
+This raises two essentials issues:
+
+** The code is unique, but there is a lot of variability in the produced artifacts.
+A first source of variability is the target environment: {cpp} model is write once, build everywhere (i.e. many times).
+There is also variability on how a project is built for a single given environment (Debug/Release, compiler flags, optional tests executable, etc.)
+** Building might require to satisfy an arbitrarly complicated dependency graph.
+
+* Conan tool is addressing these two issues: it resolves the dependency graphs,
+and it models the variability of environments and projects via link:https://github.com/conan-io/conan/issues/794#issuecomment-268515093[options and settings].
+
+Between the build system and the Conan tool sits the *recipe*: It lists the different dependencies, as well as the options and settings.
+One of its crucial responsiblity is to abstract the build system behind the recipe's `build()` method, while making sure each option and setting is properly translated/forwarded.
+
+==== From Conan options and settings to CMake variables
+
+===== Conan's CMake build helper
+
+One of {Sonat} goal is to minimize coupling. Conan lives in a higher layer than CMake: it ensues `CMakeLists.txt` scripts should ideally *not* be aware of Conan, or at the very least should *not* require it.
+{Sonat} intends to accomodate a variety of workflows, and it seems reasonable for some workflows to build the project directly from CMake generated buildfiles, out of Conan.
+(they optionally could rely on Conan to provide some, or all, of the upstream dependencies).
+
+The above recipe uses CMake build helper, which link:https://docs.conan.io/en/latest/reference/build_helpers/cmake.html#definitions[implicitly translates some usual Conan options and settings as CMake variables].
+
+CAUTION: If a recipe introduces custom options and settings, it must do all the work to provide the values to the build system and make sure the build system is configured according to those values.
+
+Among the different CMake variable defined by the build helper, some are mapped to native CMake variables.
+As such, CMake directly takes them into account and not further step is required, notably:
+
+* CMAKE_BUILD_TYPE (from `options.build_type`)
+* CMAKE_OSX_ARCHITECTURES (from a combination on settings.os and `settings.arch` or `settings.arch_target`)
+
+CAUTION: This works reliably only if the CMake scripts do not override the values assigned to those variables.
+
+Yet, the majority of CMake variables defined by the helper are custom Conan variables (aptly prefixed with `CONAN_`).
+CMake is not aware of such variables, thus those variables would be ignored by default: the recipe would not fulfil its contract to properly forward the variability for to the build system.
+
+===== Conan's CMake generator
+
+Obviously, some extra logic must be introduced to accomodate the `CONAN_` CMake variables: Conan generated files to the rescue.
+One of the early link:https://docs.conan.io/en/latest/reference/generators.html[generator] proposed by Conan is the link:https://docs.conan.io/en/latest/reference/generators/cmake.html[cmake generator].
+It generates a `conanbuildinfo.cmake` file essentially offering three things:
+
+* Define _package-namespaced_ variable, providing values for each upstream package independently
+* Define amalgamation variables, encompassing all the upstream packages
+* Propose a set of user-invokable macros, notably the `conan_basic_setup()` agreggation of other macros.
+
+Some of these macros are handling the `CONAN_` prefixed variables, to actually apply them to the build system:
+
+* `check_compiler_version()`
+* `conan_set_std()`
+* `conan_set_libcxx()`
+* `conan_set_vs_runtime()`
+
+NOTE: Those varied features allow this generator to easily fit with a vast variety of the pre-existing CMake based projects in circulation: be it an modern Conan-aware CMake infrastructure leveraging link:https://docs.conan.io/en/latest/reference/generators/cmake.html#conan-define-targets[`conan_define_targets()`] to provide its needed targets, or an old(deprecated)-style CMake project entirely relying on <<old-cmake-vars, setting folder-level property via the loosely-grouped variables>>. And there are a great many combinations in between.
+This is probably why it was introduced early in Conan releases, and why it is the advertised generator in the link:https://docs.conan.io/en/latest/creating_packages/getting_started.html[Getting started] for package creation.
+When coupled with `conan_basic_setup()` invocation, it works reliably in a diverse landscape over which Conan developers have little control.
+
+.Friction point: Inconsistency in the CMake build helper implicit variables
+****
+As illustrated, the CMake build helper directly sets some CMake native variables, while some other require CMake scripts logic to be taken into account.
+This difference likely comes from the fact that the helper directly sets all the native variables it can, yet some values translation requires to already be in the CMake configuration process:
+
+* Enforcing the compiler and its version: Currently implemented as a check comparing the Conan provided value to which compiler CMake actually picked.
+Is about to change: will be adressed pro-actively via a `CMAKE_TOOLCHAIN_FILE`.
+* cppstd and gnuextensions: requires knowing the CMake version, to allow using versions of CMake before the introduction of `CMAKE_CXX_STANDARD` and `CMAKE_CXX_EXTENSIONS`
+(in {Sonat} specific case, this version is actually known in advance, since CMake is a `build_dependency`)
+* stdlib: potentially requires extending the `CMAKE_CXX_FLAGS`
+
+Yet, the resulting situation might lead to confusion, and problematic recipes.
+****
+
+===== conan_basic_setup alternative
+
+While the cmake generator just works in a variety of situations, {Sonat} projects have well known and precise characteristics.
+They are writen against modern target-based CMake, link:https://youtu.be/bsXLMQ6WgIk?t=820[keeping away from requirements provided as independant variables].
+
+[[cmake_generator_drawbacks]]In {Sonat} specific situation, it might appear that the widely encompassing approach taken by the cmake generator brings a few drawbacks:
+
+* Variable pollution, with a vast majority of globaly defined variable are not usefull to the build management
+* Opinionated new defaults, introducing incompatibilities between default Conan builds and default CMake builds.
+(e.g. `conan_basic_setup()` disable RPATH by default, which is not CMake's default)
+* Usage of the generted CMake script is invasive, requiring dedicated code in the root `CMakeLists.txt`
+
+{Sonat} aims to write canonical CMake scripts. In his presentation "Effective CMake",
+link:https://youtu.be/bsXLMQ6WgIk?t=3038[Daniel Pfeifer presents the canonical way to use an external library].
+To achieve this syntax when using an external {Sonat} component is the natural solution, and it only requires the (concise) output of link:https://docs.conan.io/en/latest/integrations/build_system/cmake/cmake_paths_generator.html[`cmake_paths` generator].
+
+This generator only populates 2 variables, and defines no logic. It can be included non-introsively as a toolchain, or indirectly at CMake `project()` invocation.
+Picking the second solution, to include the generated file for the `MyRepository` project would only require to configure CMake (or Conan's CMake build helper) with the following variable defined:
+
+    CMAKE_PROJECT_MyProject_INCLUDE=.../conan_paths.cmake
+
+This would allow the canonical invocations of `find_package()` in our leaf `CMakeLists.txt` to correctly find the Conan-retrieved packages.
+
+Yet, this still requires further action to be taken to actually translate the `CONAN_` prefixed variables into variables understood by CMake.
+As discussed above, the plain `cmake` generator is providing a file including (among other things) the necessary logic.
+
+{Sonat} follows a pragmatic approach, invoking both Conan generators,
+and introducing an additional script to glue them together:
+
+.conan/customconan.cmake
+[source, cmake]
+----
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+
+# Made a function to avoid leaking the variables defined within conanbuildinfo.cmake
+function(conan_handle_compiler_settings)
+    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+
+    if(CONAN_EXPORTED)
+        conan_message(STATUS "Conan: called by CMake conan helper")
+    endif()
+
+    if(CONAN_IN_LOCAL_CACHE)
+        conan_message(STATUS "Conan: called inside local cache")
+    endif()
+
+    check_compiler_version()
+    conan_set_std()
+    conan_set_libcxx()
+    conan_set_vs_runtime()
+endfunction()
+
+conan_handle_compiler_settings()
+----
+
+The recipe itself must also be edited, to include this file by defining the CMake varialble `CMAKE_PROJECT_<name>_INCLUDE`:
+
+.conan/conanfile.py
+[source, python]
+----
+    ...
+
+    def _configure_cmake(self):
+        cmake = CMake(self)
+        cmake.definitions["CMAKE_PROJECT_cerberica2_INCLUDE"] = \
+            path.join(self.source_folder, "cloned_repo", "conan", "customconan.cmake")
+        cmake.definitions["BUILD_tests"] = self.options.build_tests
+        cmake.configure(source_folder="cloned_repo")
+        return cmake
+
+    ...
+----
+
+.Friction point: Waiting for Conan generation of toolchain files
+****
+Working around the <<cmake_generator_drawbacks, presented drawbacks>> only grew the infrasctructure code in each repository even larger. +
+There is currently an issue tracking Conan link:https://github.com/conan-io/conan/issues/5737[Build toolchain POC].
+It could be beneficial to consider whether the logic invoked in this `customconan.cmake` could naturally fit in such a toolchain file, alleviating the need for this file.
+****
+
+===== Usage
+
+Thanks to the self-contained nature of a recipe via its code and build dependencies, theoratically the target compiler (or IDE)
+link:https://docs.conan.io/en/latest/installation.html#install[alongside with Conan]
+are the only requirements to be pre-installed on a build environments.
+
+Publishing the recipe `example/1.0@user/stable`:
+
+    # From the repository root
+    conan create ./conan 1.0@user/stable
+    conan upload [-r my_remote] example/1.0@user/stable
+
+NOTE: The package name `example` is deduced from the recipe `name`.
+If an explicit version is specified in the recipe meta-information, it is also be possible to omit it on the `conan create` command line.
+
+Consuming the uploaded package from an environment able to access the remote:
+
+    conan install example/1.0@user/stable
+
+This will either:
+
+* retrieve a package for this recipe when one is available with the current combination of settings and options
+* or build it if this combination is not available (thanks to `build_policy = "missing"`).
+
+... while recursively consuming all the dependencies along the upstream graph
+
+NOTE: This direct call to `install conan` can be useful for end-user installing a packaged application,
+ or for automated process (e.g. CI attempting to build on different environments).
+Routinely, a developer would consume recipes by <<developer-conan-usage, installing the project's `conanfile.py` itself>>.
+
+[[developer-conan-usage]]Working on the repository in isolation:
+
+    git clone --recurse-submodules .../example.git
+    mkdir example/build
+    cd example/build
+    conan install ../conan
+
 
 ==== Automated QA
 

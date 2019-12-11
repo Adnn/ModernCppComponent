@@ -15,21 +15,53 @@ Additionally, some situations might require co-operation of several projects, th
 .. Introduction
 ... Context
 ... Motivation
-... Audience
-... Design
-.. The workflows
+... Philosophy
+.... The best process in the world
+... {cpp} spcial case
+... Audience #TODO
+... Design #TODO
+.. The workflows #TODO
 ... User
-... External developer
-... Contributor
+.... "Grandpublic" end-user
+.... Command-line friendly user
+... Consumer-developer
+... Consumer/contributor-developer
+... Core-developer
 .. The process
-... Organizing the files
-....  Repository model choice
-....  Filesystem structure
-... Build
-.... Minimal CMake setup
-.... Upstream dependencies
-... Packaging (Downstream dependencies)
+... Structuring content
+.... Repository model choice
+.... Filesystem organization
+... Building code
+.... Portability considerations
+.... Building with {Sonat}: CMake
+..... Minimal CMake setup
+.... Using upstream dependencies: CMake
+..... Finding dependencies
+..... Consuming dependencies
+..... Putting it together
+... Packaging components (becoming an upstream dependency): CMake
+.... Installing the component files
+.... Preparing a CMake package
+.... Putting it together
+.... Multiple components in a single CMake package
+.... Finding upstream dependencies from a CMake package
+..... Making dependency information available
+.... Putting it together
+... Distribution: Conan
+.... Motivations
+.... Adding Conan recipe
+.... Taking a step back
+.... From Conan options and settings to CMake variables
+..... Conan's CMake build helper
+..... Conan's CMake generator
+..... conan_basic_setup alternative
+[[TODO]]
+.... Testing the recipe
+.... Multi-build type recipe
 ... Automation
+.. Annexes
+... Conan-ify a non-conan non-cmake external dependency
+... Azure pipeline starting process?
 
 === Section structure
 
@@ -41,7 +73,7 @@ Additionally, some situations might require co-operation of several projects, th
 -- Section
 ...
 
-or 
+or
 
 - Title
 -- Content
@@ -70,4 +102,7 @@ The complication of wanting to work on a few closely related components at the s
 * Define a style guide
 * Find a good name for the process
 * Describe how the process was designed/refined
+
+Take a look at:
+* https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1
 
