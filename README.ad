@@ -7,11 +7,11 @@ An adaptable approach to build and distribute usable C++ software components
 === Context-lite
 
 {cpp} is an ISO standard based on the Abstract Machine, it keeps far from the practical
-and gory details adressing how to build it, even less how to distribute it.
+and gory details addressing how to build it, even less how to distribute it.
 
-Building and distribution are the realm of 3rd party actors and tools -distinct from the comitee-
-(Some people from this realm are sitting on the comitee, but this fact does not change the ISO standard scope).
-As a result, there is little to no standard-prescribed way to go about steps once the code is writen.
+Building and distribution are the realm of 3rd party actors and tools -distinct from the committee-
+(Some people from this realm are sitting on the committee, but this fact does not change the ISO standard scope).
+As a result, there is little to no standard-prescribed way to go about steps once the code is written.
 
 === Motivations
 
@@ -20,13 +20,13 @@ native software with the following properties:
 
 * Cross-platform and _reasonably_ cross-toolset
 * Usable and re-usable (consumer perspective)
-** By other developers in the same and potentially unrelated organizations
+** By other developers in the same and potentially unrelated organisations
 ** By automated processes (e.g. CI)
 * Easy to share (provider perspective)
-* Composable
+* Modular
 * Uniform: Both the process and the resulting package have to work great for naively small projects as well as important code bases.
 
-In the current era of Modern {cpp}, the langage itself leads a potential change in the mindset of developers using it.
+In the current era of Modern {cpp}, the language itself leads a potential change in the mindset of developers using it.
 Those changes are pervading the {cpp} ecosystem and tooling.
 This document does not explore the language itself, but how to actually achieve and take advantage of the above properties by relying on modern tools.
 
@@ -35,27 +35,27 @@ Equally important is hopefully being able to **convey the appropriate mindset**,
 There is no standard, no undisputed approach, and no silver-bullet.
 But there are solutions with varying level of traction and growth,
 active projects refining themselves, and different levels of practicality and stability.
-By **providing a write-up of an end-to-end (hollistic) approach**, another goal is to try and **attract collaborators**, thus attracting expert-knowledge regarding specific cogs in the system. +
+By **providing a write-up of an end-to-end (holistic) approach**, another goal is to try and **attract collaborators**, thus attracting expert-knowledge regarding specific cogs in the system. +
 In addition to support enhancing each step, it could also serve as a repository of the different
 friction-points in the interactions of parts, **recording potential future enhancements**.
 
-Why adhering to a pre-defined process? Theoratically, the properties above could be reached
+Why adhering to a pre-defined process? Theoretically, the properties above could be reached
 via innumerable different ways. +
 In practical situations, each process implements a different trade-off.
-Reaching a satsifying yet adaptable infrastructure costs a lot of men-months, and the later the issue is addressed, the costlier putting it in place turns out to be.
+Reaching a satisfying yet adaptable infrastructure costs a lot of men-months, and the later the issue is addressed, the costlier putting it in place turns out to be.
 By adopting a common and predefined plan:
 
-* Having *good defaults* saves on initial setup and discussions (i.e. https://www.youtube.com/watch?v=XkDEzfpdcSg&feature=youtu.be&t=195[avoid bikeshedding]). The value added part is the software, not its packaging logic.
+* Having *good defaults* saves on initial setup and discussions (i.e. https://www.youtube.com/watch?v=XkDEzfpdcSg&feature=youtu.be&t=195[avoid bike-shedding]). The value added part is the software, not its packaging logic.
 * Having a common base gives better chance at *interoperability*.
 * Someone already *documented the process* for you, and you might not even have to maintain this document.
 
 === Philosophy
 
 Producing sociable components might require some change in the usual approach:
-it becomes the reponsiblitly of the component itself to take extra measures and precautions in order to be easily buildable, usable and distributable.
+it becomes the responsibility of the component itself to take extra measures and precautions in order to be easily buildable, usable and distributable.
 
 This might contrast with a traditional approach where the burden was on downstream(s) to adapt to the libraries it uses,
-which often lead the organizations adhering to this isolation mental model to stay away from external dependencies as much as possible.
+which often lead the organisations adhering to this isolation mental model to stay away from external dependencies as much as possible.
 
 ==== The best process in the world
 
@@ -85,7 +85,7 @@ parameters to consider along the way, to make informed engineering decisions and
 [[special_case]]
 === {cpp} special case ===
 
-Many high level langages are able to provide sociable components quite naturally, without requiring to first agree on some external process.
+Many high level languages are able to provide sociable components quite naturally, without requiring to first agree on some external process.
 Or they have one (a few) de-facto standard.
 
 In addition to the fact that the {cpp} standard does not make any prescription, {cpp} (as other native languages) is a special case.
@@ -97,7 +97,7 @@ It is not trivial to distribute a project that builds easily on all environments
 * Standard lib
 * The gazillion compilation flags
 ** Debug, Release, MinSize, and a few others
-** Optimization level
+** Optimisation level
 ** ...
 * The upstream dependency-diamond (two separate components might rely on the same upstream library)
 * Code instrumentation
@@ -140,11 +140,11 @@ The tools recommendation is the same as in Mateusz Pusz presentation above (ther
 
 ==== Repositories
 
-The first practical decision when starting a new project from sratch will be the granularity of the repository. https://medium.com/@johnclarke_82232/mono-or-multi-repo-6c3674142dfc[The monorepo, the mutirepo (repo-per-component)], and the reality in between.
+The first practical decision when starting a new project from scratch will be the granularity of the repository. https://medium.com/@johnclarke_82232/mono-or-multi-repo-6c3674142dfc[The monorepo, the mutirepo (repo-per-component)], and the reality in between.
 
 One of monorepo's advantages is facility to setup and use with most toolsets, avoiding most complications to locate dependent components.
 
-One of mutlirepo's advantages is about automation: +
+One of multirepo's advantages is about automation: +
 The easily detectable "atomic unit of change" is the VCS commit (or push).
 Where there is only one component in the repo, there is no question as to which component processes should be triggered
 when change is detected.
@@ -153,11 +153,11 @@ when change is detected.
 
 As a general rule of thumb, smaller granularity gives better control and flexibility.
 
-.Implementing conan recipes for 3rd party software
+.Implementing Conan recipes for 3rd party software
 [%collapsible]
 ====
-An organization relying on Conan has dependencies overs software not offering Conan package. Ideally, each time a recipe
-code is pushed back to the central repo, the organization's CI would pick it and publish the updated recipe.
+An organisation relying on Conan has dependencies overs software not offering Conan package. Ideally, each time a recipe
+code is pushed back to the central repo, the organisation's CI would pick it and publish the updated recipe.
 If a single repositories host tens of recipes, the process will either be naive and wasteful, or
 will require additional logic to rebuild only the edited recipe(s).
 ====
@@ -179,7 +179,7 @@ The axiom being that "upstream cannot and should not know all downstreams". +
 The idea of manually having to clone and separately build a handful of independent repos
 for even medium-sized applications should trigger the maintainability alarm.
 
-Different approaches and tools exist to manage multi-repos. Git link:https://github.blog/2016-02-01-working-with-submodules[`submodule`] is an easily accessible tool, since it is integrated with core Git installations. Yet, a reccurent criticism is submodules do not scale well as they are unpractical to use.
+Different approaches and tools exist to manage multi-repos. Git link:https://github.blog/2016-02-01-working-with-submodules[`submodule`] is an easily accessible tool, since it is integrated with core Git installations. Yet, a recurrent criticism is submodules do not scale well as they are unpractical to use.
 In particular, the less orthogonal the submodules/module, the more this can become a problem.
 
 [NOTE]
@@ -188,8 +188,8 @@ In particular, the less orthogonal the submodules/module, the more this can beco
 Likeliness that changes in entity B would coherently happen alongside changes in entity A.
 ====
 
-The proposed system recognizes the existence of both, placing them as extremas on a line
-on which organization are allowed to move as the development progresses.
+The proposed system recognises the existence of both, placing them as extrema on a line
+on which organisation are allowed to move as the development progresses.
 
 .Organically growing codebase
 [%collapsible]
@@ -203,15 +203,15 @@ start its existence in the same repo, and later on move to a separate repo to be
 [[anyrepo]]
 .In a nutshell
 ****
-The actual system should be able to accomodate _monorepos_ and _multi-repos_, as well
+The actual system should be able to accommodate _monorepos_ and _multi-repos_, as well
 as the reality in between: let's call it _anyrepo_. It does not allow for circular dependencies. +
-The formalization is that repositories can contain 1..N components, and can depend on components in
+The formalisation is that repositories can contain 1..N components, and can depend on components in
 0..M other repositories. Repositories dependencies are a DAG.
 ****
 
-==== Filesystem organization
+==== Filesystem organisation
 
-Once defined which component(s) will be held inside a repository, the repository must be organized in a files and folders hierarchy.
+Once defined which component(s) will be held inside a repository, the repository must be organised in a files and folders hierarchy.
 
 .{Sonat} proposed structure
 ----
@@ -282,7 +282,7 @@ As the rest of the code, it should be treated as an evolving piece of informatio
 
 Standard C++ is a cross platform language, with an ever growing ecosystem of tools. Yet the limiting factor in this portability often turns out to be the build system.
 
-An important challenges is achieving a cross-platform and cross-toolset (code editors, compilers and analyzers) build system, while keeping it DRY.
+An important challenges is achieving a cross-platform and cross-toolset (code editors, compilers and analysers) build system, while keeping it DRY.
 
 .DON'T: Many project files and component configurations in the repo
 [%collapsible]
@@ -324,14 +324,14 @@ Conceptually, {Sonat} relies on three categories of `CMakeLists.txt` files:
 
 ===== Root CMakeLists
 
-It is responsible for initializing CMake and expressing what common to all or most components.
+It is responsible for initialising CMake and expressing what common to all or most components.
 
 Base:
 
 .CMakeLists.txt
 [source, cmake]
 ----
-# CMake initialization
+# CMake initialisation
 cmake_minimum_required(VERSION 3.15)
 
 # Setting the VERSION on root project() will populate CMAKE_PROJECT_VERSION
@@ -372,7 +372,7 @@ endif()
 One "leaf" CMakeLists is present in each component, included by (cmp).
 It is responsible for actually describing how the component is built.
 
-The process relies on the nested project name as the component's name, and additionnally defines several variable for internal use.
+The process relies on the nested project name as the component's name, and additionally defines several variable for internal use.
 This is to ensure a DRY solution, in particular when it comes to lists.
 
 Base for a component without upstream dependencies:
@@ -429,8 +429,8 @@ project(A VERSION "${CMAKE_PROJECT_VERSION}")
 ----
 |Implicitly defines the variables:
 
-* `PROJECT_NAME` initialized to "A"
-* `${PROJECT_NAME}_VERSION` initialized to the version provied to the root project() call
+* `PROJECT_NAME` initialised to "A"
+* `${PROJECT_NAME}_VERSION` initialised to the version provided to the root project() call
 
 |
 ----
@@ -450,7 +450,7 @@ add_library(${PROJECT_NAME}
 ----
 &nbsp;
 |Defines a target named `A` for this component with `add_library`.
-It would build fine without listing the headers, yet having them there makes sure they show up in IDEs.
+It would build fine without listing the headers, yet having them here makes sure they show up in IDEs.
 
 |----
 add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
@@ -471,7 +471,7 @@ target_include_directories(${PROJECT_NAME}
 Without this directive, this component could already include its own headers via relative path (e.g. `#include "bar.h"`).
 
 This directive ensures uniformity, permitting both the component source themselves and its downstream users to include the component headers via compiler's include path (e.g. `#include <bar.h>`). +
-For downstream, this is a requirement, while it is added as a convenience for the current component (most usefull when including headers in other directories).
+For downstream, this is a requirement, while it is added as a convenience for the current component (most useful when including headers in other directories).
 
 [[duplicated-libname-folder]]
 [CAUTION]
@@ -511,8 +511,8 @@ Some properties are actually requirements that can be set with `set_target_prope
 [CAUTION]
 .Explicitly listing files
 ====
-Since the dawn of CMake and to the day of this writing, the official doc link:https://cmake.org/cmake/help/latest/command/file.html#filesystem[advises against ``GLOB``ing] to collect all sources files automatically instead of listing them expicitly.
-The argument regarding the fact CMake will need the file to be touched anyway to regenerate might be seen as week (if the files are listed explicitly, the file has to be touched anyway). The second argument has deeper implications, plus:
+Since the dawn of CMake and to the day of this writing, the official doc link:https://cmake.org/cmake/help/latest/command/file.html#filesystem[advises against ``GLOB``ing] to collect all sources files automatically instead of listing them explicitly.
+The argument regarding the fact CMake will need the file to be touched anyway to regenerate might be seen as weak (if the files are listed explicitly, the file has to be touched anyway). The second argument has deeper implications, plus:
 
 * Explicit is better than implicit
 * It makes it possible to add files conditionally depending on the target system, build parameters, etc., and any combination of those (which would become hell with GLOB)
@@ -539,7 +539,7 @@ They are added via `add_library(${PROJECT_NAME} INTERFACE)`, and cannot list the
 [TIP]
 ====
 CMake generated IDE projects show listed sources in the IDE UI, yet none are listed for interface libraries.
-A workaround is to create a _dummy_ link:https://cmake.org/cmake/help/latest/command/add_custom_target.html[custom target], whose sole puprose it to show up in the IDE.
+A workaround is to create a _dummy_ link:https://cmake.org/cmake/help/latest/command/add_custom_target.html[custom target], whose sole purpose it to show up in the IDE.
 ----
 add_custom_target(${PROJECT_NAME}_ide
                   SOURCES ${${PROJECT_NAME}_HEADERS})
@@ -556,7 +556,7 @@ This section adds upstream dependencies, showing how to build a component which 
 CAUTION: The direct approach described here is only used to introduce the necessary notions.
 The actual approach prescribed by the process is described later, and might appear less direct due to limitations in the tools we are using.
 
-CMake find upstream depencies through invocation of link:https://cmake.org/cmake/help/latest/command/find_package.html[find_package] command.
+CMake find upstream dependencies through invocation of link:https://cmake.org/cmake/help/latest/command/find_package.html[find_package] command.
 This is a central command in CMake, with extensive documentation with important information for project maintainers (even though, strictly following the process should make it work "out of the black box").
 
 
@@ -564,7 +564,7 @@ This is a central command in CMake, with extensive documentation with important 
 ****
 This command has two modes
 
-link:https://cmake.org/cmake/help/v3.16/command/find_package.html#id2[`Module`]:: is relying on some external "Find" file (several are distributed with CMake), which traditionnally <<old-cmake-vars, populated variables>>.
+link:https://cmake.org/cmake/help/v3.16/command/find_package.html#id2[`Module`]:: is relying on some external "Find" file (several are distributed with CMake), which traditionally <<old-cmake-vars, populated variables>>.
 It can nonetheless create IMPORTED targets, as is the case with FindBoost.
 link:https://cmake.org/cmake/help/v3.16/command/find_package.html#full-signature-and-config-mode[`Config`]:: should be the preferred approach when available, but requires supports from the upstream component.
 
@@ -583,7 +583,7 @@ find_package(UpstreamName [version [EXACT]] [REQUIRED])
 
 
 A second type of package can be distinguished, which propose <<Multiple components,
-multiple components>> to be included separately. In this case, the components to find are listed after `COMPONENTS` keywoard (or `OPTIONAL_COMPONENTS` for non-required components).
+multiple components>> to be included separately. In this case, the components to find are listed after `COMPONENTS` keyword (or `OPTIONAL_COMPONENTS` for non-required components).
 The syntax becomes:
 
 ----
@@ -593,16 +593,16 @@ find_package(UpstreamName [version [EXACT]] [REQUIRED] [COMPONENTS component1 co
 [NOTE]
 .Locating upstream dependencies in the root `CMakeLists.txt`
 ====
-Some componentized projects locate the dependenices in (cmr), potentially removing repeated invocations of `find_package` for requirements common to multiple components under the same repository. +
+Some componentised projects locate the dependencies in (cmr), potentially removing repeated invocations of `find_package` for requirements common to multiple components under the same repository. +
 The proposed solution instead makes each component responsible to locate its own dependencies.
 
-The finer granularity ease potential relocation of components in other repositories, and allows each component to behave more independantly.
+The finer granularity ease potential relocation of components in other repositories, and allows each component to behave more independently.
 This will also enables a better contained <<Packaging,packaging process>>.
 ====
 
 .TODO
 ****
-Understand why Mateusz Pusz proposes that each component can be built in isolation, without necessarely relying on the root `CMakeLists.txt`.
+Understand why Mateusz Pusz proposes that each component can be built in isolation, without necessarily relying on the root `CMakeLists.txt`.
 ****
 
 
@@ -628,7 +628,7 @@ Even though its name might seem too narrow compared to its actual function, this
 
 The scope of the linkage has the <<cmake-requirements-scopes, usual requirement scope meaning>>.
 
-TIP: Even though a syntax without specifying the scope is available, always explictly provide the scope for easier maintainabilty.
+TIP: Even though a syntax without specifying the scope is available, always explicitly provide the scope for easier maintainability.
 
 ===== Putting it together
 
@@ -691,7 +691,7 @@ To complete the process, it must describes how to make a component that can be u
 ==== Installing the component files
 
 The CMake infrastructure as described up to this point covers the basic needs of a project to build in the _build tree_, i.e. under a build directory as defined when invoking CMake. +
-There is a second notion of _install tree_, a folder where the components is deployed when invoking the `install` build target implicilty created by CMake.
+There is a second notion of _install tree_, a folder where the components is deployed when invoking the `install` build target implicitly created by CMake.
 
 NOTE: link:https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html[CMAKE_INSTALL_PREFIX] CMake variable controls the base folder (prefix) where the installation takes place. It is important to explicitly define it to avoid the default behaviour of installing system-wide.
 
@@ -787,7 +787,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
 NOTE: It currently seems this file introduces an extra indirection for no reason, yet it will grow in later steps.
 
 NOTE: `AnyNewerVersion` can be replaced by any valid value for
-link:https://cmake.org/cmake/help/v3.14/module/CMakePackageConfigHelpers.html#command:write_basic_package_version_file[the `COMPATIBLITY` argument].
+link:https://cmake.org/cmake/help/v3.14/module/CMakePackageConfigHelpers.html#command:write_basic_package_version_file[the `COMPATIBILITY` argument].
 
 ==== Putting it together
 
@@ -867,7 +867,7 @@ install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 ****
 This task appears to be generic, yet requires to add many line of codes, repeated in each leaf `CMakeLists.txt`.
 This boilerplate will grow bigger as <<Find upstream dependencies from packages, dependency find forwarding>> is introduced. +
-For the moment, it is recommended to factorize this logic in a custom CMake function, yet it should ideally
+For the moment, it is recommended to factorise this logic in a custom CMake function, yet it should ideally
 be discussed with CMake experts and maintainers to see if this situation can be streamlined.
 ****
 
@@ -894,7 +894,7 @@ This process will fit naturally in the top-level CMake file:
 [source, cmake]
 [subs=+quotes]
 ----
-# CMake initialization
+# CMake initialisation
 cmake_minimum_required(VERSION 3.15)
 
 # Setting the VERSION on root project() will populate CMAKE_PROJECT_VERSION
@@ -962,13 +962,13 @@ if (_@PACKAGE_NAME@_NOTFOUND_MESSAGE)
 endif()
 ----
 
-NOTE: Execution of this Config script might be recursive via the find_depency call,
+NOTE: Execution of this Config script might be recursive via the find_dependency call,
 in cases where components in the same project depend on each other.
 Since all invocations occur in the same "variable scope", the unset(_config_location) would also
 erase the value in the "calling context", even if unset would occur after the loop completes.
 For this reason, re-set `_config_location` variable at each iteration.
 
-The template above relies on the config files stil produced and installed by each individual component to locat them,
+The template above relies on the config files still produced and installed by each individual component to locate them,
 via the call to link:https://cmake.org/cmake/help/latest/module/CMakeFindDependencyMacro.html[`find_dependency()`].
 
 This multi-component transformation also induces two changes in the leaf CMakeLists.txt compared to what was presented above:
@@ -1049,21 +1049,21 @@ The current CMake code allows downstreams to find requested components in a pack
  in turn forwarding its requirements as well as requirements from its own upstream dependencies:
  the requirements are transitively forwarded by a recursive traversal of the upstream dependencies graph.
 
-Yet, for this exhaustive processus to take place, each upstream must be found before it is expressed as a direct dependency on a target
+Yet, for this exhaustive process to take place, each upstream must be found before it is expressed as a direct dependency on a target
 (expressed via `target_link_libraries` for dependencies found as `IMPORTED` targets).
 
 When implementing a component following {Sonat}, all direct dependencies are found in the component's leaf `CMakeLists.txt`, which takes care of the first level of dependency.
 Yet, those direct dependencies might have their own dependencies, which are no directly found in the current `CMakeLists.txt`.
 
-CAUTION: The `xxxTarget.cmake` file generated by CMake for the direct dependencie does not find its direct dependencies.
+CAUTION: The `xxxTarget.cmake` file generated by CMake for the direct dependencies does not find its direct dependencies.
 
 To be properly *self-contained*, a CMake package *must find its direct dependencies*.
-Issuing the necessary `find_` commands link:https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file[is a responsability left to the package developer].
+Issuing the necessary `find_` commands link:https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file[is a responsibility left to the package developer].
 The documentation recommends to find the dependencies for the packaged component directly in its `xxxConfig.cmake` file.
 Yet, explicitly writing the `find_` calls in both the left `CMakeLists.txt` and the `xxxConfig.cmake` would be *a major violation of DRY*.
 
 {Sonat} improvises a solution to keep a single instance of the list only using CMake facilities.
-The calls to `find_package` are moved away from the leaf `CMakeLists.txt` to a new file `CMakeFinds.txt` with a the following occurences wrapped in `@` pairs:
+The calls to `find_package` are moved away from the leaf `CMakeLists.txt` to a new file `CMakeFinds.txt` with a the following occurrences wrapped in `@` pairs:
 
 * `find_package`
 * `REQUIRED`
@@ -1096,12 +1096,12 @@ local_find()
 ----
 
 NOTE: The sole purpose of defining a function here instead of inlining the content is to scope the defined variable to this block only.
-This function should likely be factorized outside of any leaf `CMakeLists.txt` and be reused.
+This function should likely be factorised outside of any leaf `CMakeLists.txt` and be reused.
 
 Effectively, this generates a file with a content strictly equal to what was removed from the leaf `CMakeLists.txt`, and includes it: functionally equivalent.
 It will now be possible to reuse this information in the `AConfig.cmake` file after configuring it with different substitutions.
 
-Yet, this does not adress the case of internal dependencies, in the current example `A` having a requirement for `ns::B`.
+Yet, this does not address the case of internal dependencies, in the current example `A` having a requirement for `ns::B`.
 Since those targets are already defined under the same repository / same root `CMakeLists.txt`, they are not found via calls to `find_package` in their sibling components.
 On the other hand, when exporting a `xxxConfig.cmake` file, those sibling targets are not defined anymore.
 The package developer must once again take measures to make sure they are explicitly found.
@@ -1124,13 +1124,13 @@ target_link_libraries(${PROJECT_NAME}
 
 This also achieves functional equivalence to the previous solution, with the added ability to reuse this information for the generated `AConfig.cmake` file.
 
-Now, the dependencies information has to be made available and consummed by the package `AConfig.cmake` file.
+Now, the dependencies information has to be made available and consumed by the package `AConfig.cmake` file.
 
 ===== Making dependency information available
 
 Following link:https://cmake.org/cmake/help/latest/manual/cmake-packages.7.html#creating-a-package-configuration-file[recommendations from the official documentation],
 the package will find its upstream dependencies via the `find_dependency()` macro instead of the `find_package()` function.
-This macro notably forwards `QUIET` and `REQUIRED` arguments, so they should not be writen explicitly.
+This macro notably forwards `QUIET` and `REQUIRED` arguments, so they should not be written explicitly.
 
 This is achieved by configuring the `CMakeFinds.cmake.in` template with different substitutions, in particular no substitution for `@REQUIRED@` nor `@QUIET@`:
 
@@ -1283,13 +1283,13 @@ install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 
 .Friction point: Lengthy boilerplate and hackish workarounds
 ****
-As already evoked, the leaf `CMakeLists.txt` now contains a lot of generic boilerplate, which should at least *be factorized away in a function*.
+As already evoked, the leaf `CMakeLists.txt` now contains a lot of generic boilerplate, which should at least *be factorised away in a function*.
 
 Is there a canonical way to reduce this ?
 Would there be interest in turning the repetitive code into an official CMake macro?
 Even the explicit code is able to adapt to many more different situations, it feels like this case might be a sane default starting point for modern component C++ libraries.
 
-Additionally, the current solution to keep the list of external and internal dependencies DRY is a hack, which might be wastefull
+Additionally, the current solution to keep the list of external and internal dependencies DRY is a hack, which might be wasteful
 (all the dependencies will be "found" by the package consumers, even the `PRIVATE` dependencies that are actually not forwarded):
 
 What is the rationale for not having the automatic `xxxTarget.cmake` code generation not handle the `find_` directly?
@@ -1310,7 +1310,7 @@ A more "natural" approach might actually be not to forward it, since the "REQUIR
 {Sonat} current leaf CMakeScripts rely on defining several custom variables.
 Yet, different talks regarding modern CMake deprecate the use of custom variables
 (see link:https://youtu.be/bsXLMQ6WgIk?t=830[Daniel Pfeifer example]).
-Yet, in the absence of a specialized handling of headers and internal target dependencies, as well as more integrated handling of package upstream dependencies,
+Yet, in the absence of a specialised handling of headers and internal target dependencies, as well as more integrated handling of package upstream dependencies,
 this use of variable seems like a better alternative than DRY violations.
 ****
 
@@ -1332,10 +1332,10 @@ Distributing the package itself is one step, yet the bigger picture is about sat
 
 ==== Motivations
 
-For code to actually become sociable, it needs to scale all the way from using a handfull of dependencies, to being just one component in the middle of a many-thousands dependencies graph.
+For code to actually become sociable, it needs to scale all the way from using a handful of dependencies, to being just one component in the middle of a many-thousands dependencies graph.
 
 It is a known approach to see collaborators locally deploy each dependency manually (via compilation or package manager requests).
-This remains manageable if the dependency chain is very shallow, or that most direct dependencies are actually well behaved socialble components.
+This remains manageable if the dependency chain is very shallow, or that most direct dependencies are actually well behaved sociable components.
 
 To ease such steps, CMake facilities exist, able to automatically retrieve / build dependencies.
 Yet, those automation facilities are usually limited in the sense that each project has only a local visibility of its direct dependencies, not the whole-picture dependency graph.
@@ -1345,7 +1345,7 @@ The central argument would be link:https://en.wikipedia.org/wiki/Separation_of_c
 {Sonat} relies on CMake to do one thing well for us:: describe the local build process for our component(s) in the repository in a portable, tool and platform agnostic textual format. +
 Dependencies management is a separate goal:: retrieving all the artifacts for the dependencies, while handling recursion through the upstream graph (and all the complication that might bring, like diamond sub-graphs)
 
-When it comes to handling depencencies, the scalable solution is to use on a package manager. For {Sonat}, it should offer those essential features:
+When it comes to handling dependencies, the scalable solution is to use on a package manager. For {Sonat}, it should offer those essential features:
 
 * Cross-platform and cross-toolset
 * Versionable with the code
@@ -1353,7 +1353,7 @@ When it comes to handling depencencies, the scalable solution is to use on a pac
 * Handle versioning
 * Ability to generate a the complete (recursive) dependency graph, and handle duplicated dependencies in different versions
 * Usable by developers, automated processes, and end-users.
-* Good defaults, with advanced customization
+* Good defaults, with advanced customisation
 * Artifacts caching and sharing (for time-consuming builds and space-consuming resulting binaries)
 * First-class support for the specificity of {cpp} (native) code, see <<special_case, {cpp} special case>>
 
@@ -1370,8 +1370,8 @@ NOTE: link:https://youtu.be/bsXLMQ6WgIk?t=2967[Daniel Pfeifer's requirements for
 
 ==== Adding Conan recipe
 
-Conan relies on *recipes*, either simple declarative `conanfile.txt`, or both declarative and imperative (and greatly customizable) `conanfile.py`.
-Conan can follow recipes to produce *packages* (the resuting artifact) that can be cached and distributed, and directly retrieved by consumers to satisfy dependencies (aleviating the need to build locally).
+Conan relies on *recipes*, either simple declarative `conanfile.txt`, or both declarative and imperative (and greatly customisable) `conanfile.py`.
+Conan can follow recipes to produce *packages* (the resulting artifact) that can be cached and distributed, and directly retrieved by consumers to satisfy dependencies (alleviating the need to build locally).
 
 Recipes are fully contained, notably providing:
 
@@ -1473,8 +1473,8 @@ Invoking `conan install`, Conan will copy the content of its source folder direc
 If we did not clone in a subfolder, the different files at the root of the repository would appear directly at the root of the build folder, which could augment the risk of filename collision.
 In other words, it ensures an _out of source build_, with the specificity that the source folder is nested under the build folder.
 
-NOTE: The `shared` option and `build_type` setting are common in recipes, thus Conan implicilty forwards the corresponding definitions to the CMake object.
-On the other hand, the custom `build_tests` option is manually forwarded. This explicit approach allows complete customization of the CMake variables.
+NOTE: The `shared` option and `build_type` setting are common in recipes, thus Conan implicitly forwards the corresponding definitions to the CMake object.
+On the other hand, the custom `build_tests` option is manually forwarded. This explicit approach allows complete customisation of the CMake variables.
 The documentation provides link:https://docs.conan.io/en/latest/reference/build_helpers/cmake.html#definitions[the list of automatic variables].
 
 ==== Taking a step back
@@ -1487,20 +1487,20 @@ This raises two essentials issues:
 ** The code is unique, but there is a lot of variability in the produced artifacts.
 A first source of variability is the target environment: {cpp} model is write once, build everywhere (i.e. many times).
 There is also variability on how a project is built for a single given environment (Debug/Release, compiler flags, optional tests executable, etc.)
-** Building might require to satisfy an arbitrarly complicated dependency graph.
+** Building might require to satisfy an arbitrarily complicated dependency graph.
 
 * Conan tool is addressing these two issues: it resolves the dependency graphs,
 and it models the variability of environments and projects via link:https://github.com/conan-io/conan/issues/794#issuecomment-268515093[options and settings].
 
 Between the build system and the Conan tool sits the *recipe*: It lists the different dependencies, as well as the options and settings.
-One of its crucial responsiblity is to abstract the build system behind the recipe's `build()` method, while making sure each option and setting is properly translated/forwarded.
+One of its crucial responsibility is to abstract the build system behind the recipe's `build()` method, while making sure each option and setting is properly translated/forwarded.
 
 ==== From Conan options and settings to CMake variables
 
 ===== Conan's CMake build helper
 
-One of {Sonat} goal is to minimize coupling. Conan lives in a higher layer than CMake: it ensues `CMakeLists.txt` scripts should ideally *not* be aware of Conan, or at the very least should *not* require it.
-{Sonat} intends to accomodate a variety of workflows, and it seems reasonable for some workflows to build the project directly from CMake generated buildfiles, out of Conan.
+One of {Sonat} goal is to minimise coupling. Conan lives in a higher layer than CMake: it ensues `CMakeLists.txt` scripts should ideally *not* be aware of Conan, or at the very least should *not* require it.
+{Sonat} intends to accommodate a variety of workflows, and it seems reasonable for some workflows to build the project directly from CMake generated build files, out of Conan.
 (they optionally could rely on Conan to provide some, or all, of the upstream dependencies).
 
 The above recipe uses CMake build helper, which link:https://docs.conan.io/en/latest/reference/build_helpers/cmake.html#definitions[implicitly translates some usual Conan options and settings as CMake variables].
@@ -1520,13 +1520,13 @@ CMake is not aware of such variables, thus those variables would be ignored by d
 
 ===== Conan's CMake generator
 
-Obviously, some extra logic must be introduced to accomodate the `CONAN_` CMake variables: Conan generated files to the rescue.
+Obviously, some extra logic must be introduced to accommodate the `CONAN_` CMake variables: Conan generated files to the rescue.
 One of the early link:https://docs.conan.io/en/latest/reference/generators.html[generator] proposed by Conan is the link:https://docs.conan.io/en/latest/reference/generators/cmake.html[cmake generator].
 It generates a `conanbuildinfo.cmake` file essentially offering three things:
 
 * Define _package-namespaced_ variable, providing values for each upstream package independently
 * Define amalgamation variables, encompassing all the upstream packages
-* Propose a set of user-invokable macros, notably the `conan_basic_setup()` agreggation of other macros.
+* Propose a set of user-invokable macros, notably the `conan_basic_setup()` aggregation of other macros.
 
 Some of these macros are handling the `CONAN_` prefixed variables, to actually apply them to the build system:
 
@@ -1545,7 +1545,7 @@ As illustrated, the CMake build helper directly sets some CMake native variables
 This difference likely comes from the fact that the helper directly sets all the native variables it can, yet some values translation requires to already be in the CMake configuration process:
 
 * Enforcing the compiler and its version: Currently implemented as a check comparing the Conan provided value to which compiler CMake actually picked.
-Is about to change: will be adressed pro-actively via a `CMAKE_TOOLCHAIN_FILE`.
+Is about to change: will be addressed pro-actively via a `CMAKE_TOOLCHAIN_FILE`.
 * cppstd and gnuextensions: requires knowing the CMake version, to allow using versions of CMake before the introduction of `CMAKE_CXX_STANDARD` and `CMAKE_CXX_EXTENSIONS`
 (in {Sonat} specific case, this version is actually known in advance, since CMake is a `build_dependency`)
 * stdlib: potentially requires extending the `CMAKE_CXX_FLAGS`
@@ -1556,20 +1556,20 @@ Yet, the resulting situation might lead to confusion, and problematic recipes.
 ===== conan_basic_setup alternative
 
 While the cmake generator just works in a variety of situations, {Sonat} projects have well known and precise characteristics.
-They are writen against modern target-based CMake, link:https://youtu.be/bsXLMQ6WgIk?t=820[keeping away from requirements provided as independant variables].
+They are written against modern target-based CMake, link:https://youtu.be/bsXLMQ6WgIk?t=820[keeping away from requirements provided as independent variables].
 
 [[cmake_generator_drawbacks]]In {Sonat} specific situation, it might appear that the widely encompassing approach taken by the cmake generator brings a few drawbacks:
 
-* Variable pollution, with a vast majority of globaly defined variable are not usefull to the build management
+* Variable pollution, with a vast majority of globally defined variable are not useful to the build management
 * Opinionated new defaults, introducing incompatibilities between default Conan builds and default CMake builds.
 (e.g. `conan_basic_setup()` disable RPATH by default, which is not CMake's default)
-* Usage of the generted CMake script is invasive, requiring dedicated code in the root `CMakeLists.txt`
+* Usage of the generated CMake script is invasive, requiring dedicated code in the root `CMakeLists.txt`
 
 {Sonat} aims to write canonical CMake scripts. In his presentation "Effective CMake",
 link:https://youtu.be/bsXLMQ6WgIk?t=3038[Daniel Pfeifer presents the canonical way to use an external library].
 To achieve this syntax when using an external {Sonat} component is the natural solution, and it only requires the (concise) output of link:https://docs.conan.io/en/latest/integrations/build_system/cmake/cmake_paths_generator.html[`cmake_paths` generator].
 
-This generator only populates 2 variables, and defines no logic. It can be included non-introsively as a toolchain, or indirectly at CMake `project()` invocation.
+This generator only populates 2 variables, and defines no logic. It can be included non-intrusively as a toolchain, or indirectly at CMake `project()` invocation.
 Picking the second solution, to include the generated file for the `MyRepository` project would only require to configure CMake (or Conan's CMake build helper) with the following variable defined:
 
     CMAKE_PROJECT_MyProject_INCLUDE=.../conan_paths.cmake
@@ -1608,7 +1608,7 @@ endfunction()
 conan_handle_compiler_settings()
 ----
 
-The recipe itself must also be edited, to point the CMake varialble `CMAKE_PROJECT_<name>_INCLUDE` to the file above:
+The recipe itself must also be edited, to point the CMake variable `CMAKE_PROJECT_<name>_INCLUDE` to the file above:
 
 .conan/conanfile.py
 [source, python]
@@ -1628,7 +1628,7 @@ The recipe itself must also be edited, to point the CMake varialble `CMAKE_PROJE
 
 .Friction point: Waiting for Conan generation of toolchain files
 ****
-Working around the <<cmake_generator_drawbacks, presented drawbacks>> only grew the infrasctructure code in each repository even larger. +
+Working around the <<cmake_generator_drawbacks, presented drawbacks>> only grew the infrastructure code in each repository even larger. +
 There is currently an issue tracking Conan link:https://github.com/conan-io/conan/issues/5737[Build toolchain POC].
 It could be beneficial to consider whether the logic invoked in this `customconan.cmake` could naturally fit in such a toolchain file, alleviating the need for this file.
 ****
@@ -1637,8 +1637,8 @@ It could be beneficial to consider whether the logic invoked in this `customcona
 
 === Affinity with different workflows
 
-For a process aiming to adress the infrastructure aspects of code projects, its ability to cater for different workflows is an important aspect.
-Getting more abstract than the specific tools used to achieve a given task, it is possible to establish an aproximate spectrum of workflows based on usages:
+For a process aiming to address the infrastructure aspects of code projects, its ability to cater for different workflows is an important aspect.
+Getting more abstract than the specific tools used to achieve a given task, it is possible to establish an approximate spectrum of workflows based on usages:
 
 * Development
 * Command line user
@@ -1650,7 +1650,7 @@ It hopefully introduces the most usual situations, with the following usage reco
 ==== Prerequisites
 
 A recipe is self-contained via its code and build dependencies. +
-Thanks to that, using {Sonat} projects on most environments theoratically only requires:
+Thanks to that, using {Sonat} projects on most environments theoretically only requires:
 
 * the target compiler (or IDE)
 * link:https://docs.conan.io/en/latest/installation.html#install[Conan installation] (on Python 3)
@@ -1668,7 +1668,7 @@ It thus additionally requires an appropriate version of CMake available on the s
 This scenario refers to developing the component in isolation:
 all upstream dependencies are available as installed components (by opposition to being accessed from their install or build tree).
 
-This scenario is naturally adressed by the system described above, and illustrates well how Conan can complement development environments (making it a one line call to satisfy all dependencies) without staying in the way (once the dependencies are retrieved, Conan might not be needed anymore).
+This scenario is naturally addressed by the system described above, and illustrates well how Conan can complement development environments (making it a one line call to satisfy all dependencies) without staying in the way (once the dependencies are retrieved, Conan might not be needed anymore).
 
 
 .The canonical steps for a `beneficialproject` repository:
@@ -1714,9 +1714,9 @@ NOTE: link:https://bintray.com/conan/conan-center[conan-center] is a free public
 
 ==== Development in multiple-repositories
 
-The isolated scenario can be generalized to illustrate development inside an organization.
+The isolated scenario can be generalised to illustrate development inside an organisation.
 
-Unless this organization strictly adhere to the <<Repositories, monorepo approach>>,
+Unless this organisation strictly adhere to the <<Repositories, monorepo approach>>,
 there might be situations where the development process would imply working on more than one repository at once
 (Each repository is a different {Sonat} project).
 
@@ -1747,13 +1747,13 @@ cmake .. -DPROJECT_profitableapp_INCLUDE=conan/customconan.cmake \
 
 There are two changes:
 
-. Conan does not install the full `conan/conanfile.py`, but a substet file (named `conan/conanfile-dev.txt` in this example).
+. Conan does not install the full `conan/conanfile.py`, but a subset file (named `conan/conanfile-dev.txt` in this example).
 This file only needs to specify the `cmake` and `cmake_paths` generators,
 link:https://docs.conan.io/en/latest/reference/conanfile_txt.html#requires[and to list requirements] *excluding all requirements that are manually provided* out of Conan (i.e. excluding `beneficialproject` in this example).
 . CMake variable `CMAKE_PREFIX_PATH` points to the local installation folder, where the `beneficialproject` 's `install` target would deploy `beneficialproject` CMake package.
-Thanks to the adopted folder structure, this *single hint* is enought to find any {Sonat} conformant package installed under this prefix.
+Thanks to the adopted folder structure, this *single hint* is enough to find any {Sonat} conformant package installed under this prefix.
 
-This logic can be extended to explicilty build an arbitrary number of dependencies instead of relying on Conan to provided them.
+This logic can be extended to explicitly build an arbitrary number of dependencies instead of relying on Conan to provided them.
 
 [CAUTION]
 .install tree vs. build tree
@@ -1761,7 +1761,7 @@ This logic can be extended to explicilty build an arbitrary number of dependenci
 By setting `CMAKE_PREFIX_PATH` to the install folder, the manually built upstream dependencies are found in their *install tree*.
 This means that, before any edition applied to them becomes available to downstream(s), they must first invoke their `install` target (e.g. `cmake --build . --target install)
 
-In certain situation it might be preferable to find the manually built upstream depedencies in their build tree.
+In certain situation it might be preferable to find the manually built upstream dependencies in their build tree.
 In this case, the *single* value provided to `CMAKE_PREFIX_PATH` should be replaced with *distinct definitions* for each upstream.
 In the current example, it would be replaced with +
 `-Dbeneficialproject_DIR=${build_dir}`.
@@ -1772,12 +1772,12 @@ Unless a dependency found in its build tree is a header-only library, it should 
 .Friction point: Distinct dependency graphs
 ****
 One important feature of a package manager is to resolve the dependencies version when several paths in the DAG specify the same recipe in differing versions.
-With this approach, several independant DAGs are generated (one per manually built repository), losing this important feature.
+With this approach, several independent DAGs are generated (one per manually built repository), losing this important feature.
 ****
 
 .Friction point: The quest for repository fluidity
 ****
-There is a bigger picture here, a potential to streamline the developers experience with more natural bridges between isolated and modularized developments. +
+There is a bigger picture here, a potential to streamline the developers experience with more natural bridges between isolated and modularised developments. +
 
 It is a stated goal to allow for the <<anyrepo, anyrepo situation>>.
 Allowing any level of repo/module granularity without getting in the way of developers brings specific challenges, in particular: +
@@ -1786,9 +1786,9 @@ The section above propose a pragmatic approach to achieve some level of freedom 
 
 * It breaks <<friction-distinct-dag, dependency resolution>>
 * In each locally built directory, a distinct `conanfile-xxx.txt` file needs to be created for each combination of locally built upstream dependencies
-* Finding upstream dependencies in their buid tree require a distinct explicit CMake-hint per upstream repository
+* Finding upstream dependencies in their build tree require a distinct explicit CMake-hint per upstream repository
 
-Properly adressing those issues are challenging, and might require additional tool support.
+Properly addressing those issues are challenging, and might require additional tool support.
 Yet the potential gains for developers might be equally important.
 
 ---
@@ -1802,8 +1802,8 @@ From a functional stand-point, an ideal solution might look something like:
   * ensure local availability of listed repositories (for local edition and build)
   * [optional] setup out-of-source builds for those local projects
 
-There might still be limitations regarding which repositoriers are allowed to be built locally
-(maybe forbid any upstream dependency of a non-local depependency).
+There might still be limitations regarding which repositories are allowed to be built locally
+(maybe forbid any upstream dependency of a non-local dependency).
 
 ****
 
@@ -1819,7 +1819,7 @@ It covers different use cases, for example:
 
 
 Assuming a project recipe <<Publishing the recipe, was made available>> on an link:https://docs.conan.io/en/latest/reference/commands/misc/remote.html[accessible Conan remote],
-with the identifier `beneficialproject/1.2.0@provider/stable`, consumming it is as simple as:
+with the identifier `beneficialproject/1.2.0@provider/stable`, consuming it is as simple as:
 
     conan install beneficialproject/1.2.0@provider/stable
 
@@ -1832,13 +1832,13 @@ Doing it recursively, consuming all the dependencies along the upstream graph
 
 ==== Generators
 
-The command above ensures that once it successfully completed, a package for `beneficialproject` is avaible in the local Conan cache.
+The command above ensures that once it successfully completed, a package for `beneficialproject` is available in the local Conan cache.
 The remaining question is how the consumer expects to use the project, which is notably constrained by the nature of the project.
 
 ===== Library
 
 If the user expects to build upon a library provided by `beneficialproject`,
-an appropriate generator from the link:https://docs.conan.io/en/latest/reference/generators.html[many supported build environments] must be choosed.
+an appropriate generator from the link:https://docs.conan.io/en/latest/reference/generators.html[many supported build environments] must be chosen.
 
 For example, to generate a `.props` file to be imported in a Visual Studio project:
 
@@ -1849,10 +1849,10 @@ Nevertheless, this example illustrates the applicability of {Sonat} based projec
 
 ===== Tool
 
-If the user is interested in a tool (executable) provided by `beneficialprojec†`, then link:https://docs.conan.io/en/latest/devtools/running_packages.html[other generators],
-such a virtuel environments, will address this situation.
+If the user is interested in a tool (executable) provided by `beneficialproject`, then link:https://docs.conan.io/en/latest/devtools/running_packages.html[other generators],
+such a virtual environments, will address this situation.
 
-For example, to obtain and invoke the `usefullgenerator` tool in `beneficialproject` on a GNU/Linux flavored environment:
+For example, to obtain and invoke the `usefullgenerator` tool in `beneficialproject` on a GNU/Linux flavoured environment:
 
     conan install beneficialproject/1.2.0@provider/stable -g virtualrunenv
     source activate_run.sh
@@ -1886,7 +1886,7 @@ If an explicit version is specified in the recipe meta-information, it is also b
 
 === General public
 
-{Sonat} is not adressed at end-users directly: the process relies on qualified tools which are not expected to be available on general public environments.
+{Sonat} is not addressed at end-users directly: the process relies on qualified tools which are not expected to be available on general public environments.
 Yet, adopting such a process which facilitates CI/CD makes it easier to cater for customers.
 It offers a good infrastructure on top of which packaging logic can be implemented, then mechanically invoked.
 
