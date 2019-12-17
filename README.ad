@@ -7,11 +7,11 @@ An adaptable approach to build and distribute usable C++ software components
 === Context-lite
 
 {cpp} is an ISO standard based on the Abstract Machine, it keeps far from the practical
-and gory details on how to build it, even less how to distribute it.
+and gory details adressing how to build it, even less how to distribute it.
 
 Building and distribution are the realm of 3rd party actors and tools -distinct from the comitee-
 (Some people from this realm are sitting on the comitee, but this fact does not change the ISO standard scope).
-Thus there is little to no standard prescribed way to go about steps once the code is writen.
+As a result, there is little to no standard-prescribed way to go about steps once the code is writen.
 
 === Motivations
 
@@ -19,18 +19,18 @@ The aim of this document is to gather (and sum-up) in one place the steps allowi
 native software with the following properties:
 
 * Cross-platform and _reasonably_ cross-toolset
-* Usable and re-usable
+* Usable and re-usable (consumer perspective)
 ** By other developers in the same and potentially unrelated organizations
 ** By automated processes (e.g. CI)
-* Easy to share
+* Easy to share (provider perspective)
 * Composable
-* Uniform: Both the process and the resulting package have to work great for naively small projects and huge code bases.
+* Uniform: Both the process and the resulting package have to work great for naively small projects as well as important code bases.
 
 In the current era of Modern {cpp}, the langage itself leads a potential change in the mindset of developers using it.
 Those changes are pervading the {cpp} ecosystem and tooling.
 This document does not explore the language itself, but how to actually achieve and take advantage of the above properties by relying on modern tools.
 
-Equally important is hopefully being able to **convey the appropriate mindset** so those properties are both understood and desired.
+Equally important is hopefully being able to **convey the appropriate mindset**, so those properties are both understood and desired.
 
 There is no standard, no undisputed approach, and no silver-bullet.
 But there are solutions with varying level of traction and growth,
@@ -42,7 +42,7 @@ friction-points in the interactions of parts, **recording potential future enhan
 Why adhering to a pre-defined process? Theoratically, the properties above could be reached
 via innumerable different ways. +
 In practical situations, each process implements a different trade-off.
-Reaching a satsifying yet adaptable state costs a lot of men-months, and the later the issue is addressed, the costlier putting it in place turns out to be.
+Reaching a satsifying yet adaptable infrastructure costs a lot of men-months, and the later the issue is addressed, the costlier putting it in place turns out to be.
 By adopting a common and predefined plan:
 
 * Having *good defaults* saves on initial setup and discussions (i.e. https://www.youtube.com/watch?v=XkDEzfpdcSg&feature=youtu.be&t=195[avoid bikeshedding]). The value added part is the software, not its packaging logic.
@@ -86,10 +86,10 @@ parameters to consider along the way, to make informed engineering decisions and
 === {cpp} special case ===
 
 Many high level langages are able to provide sociable components quite naturally, without requiring to first agree on some external process.
+Or they have one (a few) de-facto standard.
 
 In addition to the fact that the {cpp} standard does not make any prescription, {cpp} (as other native languages) is a special case.
-One of the reasons is that it is both non trivial to distribute a project that builds easily on all environments, while it is at the same
-time close to impossible to distribute pre-built objects for all environments due to the combinatorial explosion of build parameters:
+It is not trivial to distribute a project that builds easily on all environments, while it is close to impossible to distribute pre-built objects for all environments due to the combinatorial explosion of build parameters:
 
 * Project versions
 * Static / Shared libraries
@@ -99,8 +99,8 @@ time close to impossible to distribute pre-built objects for all environments du
 ** Debug, Release, MinSize, and a few others
 ** Optimization level
 ** ...
-* The upstream diamond (two separate components might rely on the same upstream library)
-* The tools
+* The upstream dependency-diamond (two separate components might rely on the same upstream library)
+* Code instrumentation
 * ...
 
 === Audience
@@ -123,7 +123,7 @@ This section describe an end-to-end approach to deliver modern {cpp} components 
 
 > link:https://www.youtube.com/watch?v=S4QSKLXdTtA&feature=youtu.be&t=134[Please do not partition our {cpp} development environment even more]
 
-The tools recommendation is the same as in the linked video (there is hope for a status quo):
+The tools recommendation is the same as in Mateusz Pusz presentation above (there is hope for a status quo):
 [cols=2*]
 |===
 |VCS
@@ -142,14 +142,16 @@ The tools recommendation is the same as in the linked video (there is hope for a
 
 The first practical decision when starting a new project from sratch will be the granularity of the repository. https://medium.com/@johnclarke_82232/mono-or-multi-repo-6c3674142dfc[The monorepo, the mutirepo (repo-per-component)], and the reality in between.
 
-One of monorepo's advantages is its trivial to setup and use with most toolsets, avoiding most complications to locate dependent components.
+One of monorepo's advantages is facility to setup and use with most toolsets, avoiding most complications to locate dependent components.
 
 One of mutlirepo's advantages is about automation: +
 The easily detectable "atomic unit of change" is the VCS commit (or push).
 Where there is only one component in the repo, there is no question as to which component processes should be triggered
 when change is detected.
 
-> Generally our tooling works at repo level [medium link]
+> Generally our tooling works at repo level
+
+As a general rule of thumb, smaller granularity gives better control and flexibility.
 
 .Implementing conan recipes for 3rd party software
 [%collapsible]
@@ -160,17 +162,20 @@ If a single repositories host tens of recipes, the process will either be naive 
 will require additional logic to rebuild only the edited recipe(s).
 ====
 
-As a general rule of thumb, smaller granularity gives better control and flexibility.
+.Updating compiler
+[%collapsible]
+====
 Another illustration is how monorepo makes it harder for a single team to change compiler in isolation, even in the context of a stable ABI.
 Since the new compiler might be more strict regarding C++ standard, it could raise new errors and warnings in the codebase.
-It will be enough for the team to fix its own component in a multirepo situation, whereas monorepo would force the change to happen for all teams at once.
+As the compiler change is applied to an entire repository, in a multirepo situation it will be enough for the team to fix its own component, whereas monorepo would force the change to happen for all teams at once.
+====
 
 
 ===== In practice
 
 * Pure monorepo is not scalable (i.e. in the context of sociable code).
 The axiom being that "upstream cannot and should not know all downstreams". +
-* On the other hand, strictly one repo per component is not practical in the absence of tooling [note].
+* On the other hand, strictly one repo per component is not practical in the absence of good tool support [note].
 The idea of manually having to clone and separately build a handful of independent repos
 for even medium-sized applications should trigger the maintainability alarm.
 
@@ -200,66 +205,64 @@ start its existence in the same repo, and later on move to a separate repo to be
 ****
 The actual system should be able to accomodate _monorepos_ and _multi-repos_, as well
 as the reality in between: let's call it _anyrepo_. It does not allow for circular dependencies. +
-The formalization is that repositories can contain 1..N components, and can depend on
+The formalization is that repositories can contain 1..N components, and can depend on components in
 0..M other repositories. Repositories dependencies are a DAG.
 ****
 
 ==== Filesystem organization
 
-Once defined which component(s) will be held inside a repository, it must be organized in a file and folders hierarchy.
+Once defined which component(s) will be held inside a repository, the repository must be organized in a files and folders hierarchy.
 
-{Sonat} proposes the following structure:
+.{Sonat} proposed structure
+----
+CMakeLists.txt (cmr)
+README.{xy}
+toolA/
+toolB/
+...
+src/
+    CMakeLists.txt (cmp)
+    apps/
+        C/
+            CMakeLists.txt (cmc-C)
+            main.cpp
+            appclass.h
+            appclass.cpp
+            ...
+    libs/
+        A/
+            A/
+                CMakeLists.txt (cmc-A)
+                libclass.h
+                libclass.cpp
+                ...
+                subcomponent/
+                    ...
+        B/
+            B/
+                CMakeLists.txt (cmc-B)
+                utilities.h
+                ...
+resources/
+----
 
- CMakeLists.txt (cmr)
- README.{xy}
- toolA-folder/
- toolB-folder/
- src/
-     CMakeLists.txt (cmp)
-     apps/
-         C/
-             CMakeLists.txt (cmc-C)
-             main.cpp
-             appclass.h
-             appclass.cpp
-             ...
-     libs/
-         A/
-             A/
-                 CMakeLists.txt (cmc-A)
-                 libclass.h
-                 libclass.cpp
-                 ...
-                 subcomponent/
-                     ...
-         B/
-             B/
-                 CMakeLists.txt (cmc-B)
-                 utilities.h
-                 ...
- resources/
+NOTE: See <<duplicated-libname-folder, the rationale behind duplicated "A" and "B" folders>>.
 
-// TODO
-.TODO
-****
-Is a sibling desirable for "plugins" alongside "libs"?
-****
-
-// TODO
-.TODO
-****
-See [] for the rationale behind duplicated "A/" folder.
-****
+NOTE: {Sonat} is intended to be extensible and adaptable. +
+This is notably the case with the filesystem structure.
+Additional tool-specific files can be added in the tools folder.
+Other type of components can be added, for example `plugins` folder could exist alongside, or replace, `libs`.
 
 ===== README
 
 The `README`, even a few lines, makes the most difference when a repository is seen from the first time.
-This is the formal social introduction.
+This is its informal social introduction.
 
 As the rest of the code, it should be treated as an evolving piece of information.
-An efficient README outline:
 
-. The first paragraph **describe the functionality of the project / components**.  As well as the intended audience.
+.An efficient README outline
+
+. The first paragraph **describes the functionality of the project / components**.  As well as the intended audience.
 
 . Optional examples.
 
@@ -435,6 +438,7 @@ set(${PROJECT_NAME}_HEADERS ...)
 
 set(${PROJECT_NAME}_SOURCES ...)
 ----
+&nbsp;
 |Keeps separate list of headers and sources for the current component.
 
 See link:https://cmake.org/cmake/help/latest/command/list.html[`list`] command for advanced operations.
@@ -444,13 +448,14 @@ add_library(${PROJECT_NAME}
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES})
 ----
-
+&nbsp;
 |Defines a target named `A` for this component with `add_library`.
 It would build fine without listing the headers, yet having them there makes sure they show up in IDEs.
 
 |----
 add_library(ns::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 ----
+&nbsp;
 |[[cmake-alias-rationale]]Defines an alias `ns::A` for the target, so `A` is accessible to sibling components under namespace `ns`
 
 |
@@ -463,10 +468,21 @@ target_include_directories(${PROJECT_NAME}
 ----
 |Define a build requirement: the include path.
 
-Without this directive, this component could directly include its own headers via relative path (e.g. `#include "bar.h"`).
+Without this directive, this component could already include its own headers via relative path (e.g. `#include "bar.h"`).
 
 This directive ensures uniformity, permitting both the component source themselves and its downstream users to include the component headers via compiler's include path (e.g. `#include <bar.h>`). +
-For downstream, this is a requirement, while it is a convenience for the current component (most usefull when including headers in other directories).
+For downstream, this is a requirement, while it is added as a convenience for the current component (most usefull when including headers in other directories).
+
+[[duplicated-libname-folder]]
+[CAUTION]
+====
+The parent folder is added to the `BUILD_INTERFACE` include directories.
+If the parent folder was directly containing all siblings components, this would break component isolation:
+it would be possible to include files from any sibling components, without stating an explicit dependency on them.
+
+*This is the reason for the duplicated library name folder*:
+this way the current component is the only component available in the added include directory.
+====
 
 [[cmake-requirements-scopes]]Requirements usually can are set on 1 out of 3 scopes:
 
@@ -503,6 +519,12 @@ The argument regarding the fact CMake will need the file to be touched anyway to
 
 This is a domain were tooling could alleviate the pain.
 ====
+
+.Friction point: duplication of library folders
+****
+The duplication of library folders is a pragmatic approach to ensure <<duplicated-libname-folder, component isolation>>, yet it makes for
+an unusual folder hierarchy.
+****
 
 ====== Executable CMake target
 
@@ -1641,7 +1663,7 @@ NOTE: CMake is a build requirement, but is required in situations where a {Sonat
 During development, the build responsibility is taken out of Conan, to be placed back into the hand of the developers.
 It thus additionally requires an appropriate version of CMake available on the system.
 
-===== Development in isolation
+==== Development in isolation
 
 This scenario refers to developing the component in isolation:
 all upstream dependencies are available as installed components (by opposition to being accessed from their install or build tree).
@@ -1677,7 +1699,7 @@ cmake --build . [--target ...]
 ----
 
 
-===== Publishing the recipe
+==== Publishing the recipe
 
 Publishing the recipe is a simple step greatly increasing a project sociability.
 It makes it trivial for downstream to consume the recipe's component(s).
@@ -1690,7 +1712,7 @@ To publish a with identifier `beneficialproject/1.2.0@company/stable`:
 
 NOTE: link:https://bintray.com/conan/conan-center[conan-center] is a free public repository, picked by default in the absence of `-r` option.
 
-===== Core organization developer
+==== Development in multiple-repositories
 
 The isolated scenario can be generalized to illustrate development inside an organization.
 
@@ -1787,7 +1809,7 @@ There might still be limitations regarding which repositoriers are allowed to be
 
 === Command-line user
 
-This workflow cover the case of consuming a {Sonat} project in a situation where a shell (command-line) interface is convenient.
+This workflow cover the case of consuming a {Sonat} project in a situation where a shell interface is convenient.
 It covers different use cases, for example:
 
 * Automated processes, such as Continuous Integration
