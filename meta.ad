@@ -20,13 +20,6 @@ Additionally, some situations might require co-operation of several projects, th
 ... {cpp} spcial case
 ... Audience #TODO
 ... Design #TODO
-.. The workflows #TODO
-... User
-.... "Grandpublic" end-user
-.... Command-line friendly user
-... Consumer-developer
-... Consumer/contributor-developer
-... Core-developer
 .. The process
 ... Structuring content
 .... Repository model choice
@@ -55,13 +48,26 @@ Additionally, some situations might require co-operation of several projects, th
 ..... Conan's CMake build helper
 ..... Conan's CMake generator
 ..... conan_basic_setup alternative
+.... Testing the recipe #TODO
+.... Multi-build type recipe #TODO
+.. Usage
+... Affinity with different workflows
+.... Prerequisites
+... Development
+.... Development in isolation
+.... Publishing the recipe
+.... Development in multiple-repositories
+... Command-line user
+.... Generators
+..... Library
+..... Tool
+.... No published recipe
+... General public
 [[TODO]]
-.... Testing the recipe
-.... Multi-build type recipe
-... Automation
 .. Annexes
+... Automation
+.... Azure pipeline starting process?
 ... Conan-ify a non-conan non-cmake external dependency
-... Azure pipeline starting process?
 
 === Section structure
 
