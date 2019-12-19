@@ -112,3 +112,8 @@ The complication of wanting to work on a few closely related components at the s
 Take a look at:
 * https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1
 
+* Proofread code from Distribution section to the end
+
+* Annex for a naive interface library:
+ * VERSION property not allowed
+ * no "private" requirement (target_include_path)
