@@ -423,7 +423,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>"
     INTERFACE
-        "$<INSTALL_INTERFACE:include/${TARGET}>")
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 # Defines target properties
 set_target_properties(${PROJECT_NAME}
@@ -484,7 +484,7 @@ target_include_directories(${PROJECT_NAME}
  PUBLIC
      "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>"
  INTERFACE
-     "$<INSTALL_INTERFACE:include/${TARGET}>")
+     "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 ----
 |Define a build requirement: the include path.
 
@@ -689,7 +689,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>"
     INTERFACE
-        "$<INSTALL_INTERFACE:include/${TARGET}>")
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 *target_link_libraries(${PROJECT_NAME}
     PUBLIC
@@ -794,14 +794,15 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
 # Generate the version file in the build tree
 if(PROJECT_VERSION)
     include(CMakePackageConfigHelpers)
-    write_basic_package_version_file(${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    set(_version_file ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake)
+    write_basic_package_version_file(${_version_file}
         VERSION ${PROJECT_VERSION}
         COMPATIBILITY AnyNewerVersion)
 endif()
 
 # Install the config and version files over to the install tree
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-              ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+              ${_version_file}
         DESTINATION lib/cmake/${PROJECT_NAME})
 ----
 
@@ -854,7 +855,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>"
     INTERFACE
-        "$<INSTALL_INTERFACE:include/${TARGET}>")
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
@@ -884,7 +885,8 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
                @ONLY)
 if(PROJECT_VERSION)
     include(CMakePackageConfigHelpers)
-    write_basic_package_version_file(${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    set(_version_file ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake)
+    write_basic_package_version_file(${_version_file}
         VERSION ${PROJECT_VERSION}
         COMPATIBILITY AnyNewerVersion)
 endif()
@@ -895,7 +897,7 @@ install(EXPORT ${PROJECT_NAME}Targets
         DESTINATION lib/cmake/${PROJECT_NAME}
         NAMESPACE myrepo::)
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-              ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+              ${_version_file}
         DESTINATION lib/cmake/${PROJECT_NAME})*
 ----
 
@@ -952,14 +954,15 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/ComponentPackageRootConfig.cmake.in
                @ONLY)
 if(PROJECT_VERSION)
     include(CMakePackageConfigHelpers)
-    write_basic_package_version_file(${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
-                                     VERSION ${CMAKE_PROJECT_VERSION}
-                                     COMPATIBILITY AnyNewerVersion)
+    set(_version_file ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake)
+    write_basic_package_version_file(${_version_file}
+        VERSION ${CMAKE_PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion)
 endif()
 
 # Install the root config file over to the install tree
 install(FILES ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
-              ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}ConfigVersion.cmake
+              ${_version_file}
         DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})*
 ----
 
@@ -1050,7 +1053,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>"
     INTERFACE
-        "$<INSTALL_INTERFACE:include/${TARGET}>")
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
@@ -1308,7 +1311,7 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../>"
     INTERFACE
-        "$<INSTALL_INTERFACE:include/${TARGET}>")
+        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
 
 *list(TRANSFORM ${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES PREPEND myrepo::)*
 target_link_libraries(${PROJECT_NAME}
