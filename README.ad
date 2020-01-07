@@ -140,7 +140,7 @@ The tools recommendation is the same as in Mateusz Pusz presentation above (ther
 
 ==== Repositories
 
-The first practical decision when starting a new project from scratch will be the granularity of the repository. https://medium.com/@johnclarke_82232/mono-or-multi-repo-6c3674142dfc[The monorepo, the mutirepo (repo-per-component)], and the reality in between.
+The first practical decision when starting a new project from scratch will be the granularity of the repository. https://medium.com/@johnclarke_82232/mono-or-multi-repo-6c3674142dfc[The monorepo, the multirepo (repo-per-component)], and the reality in between.
 
 One of monorepo's advantages is facility to setup and use with most toolsets, avoiding most complications to locate dependent components.
 
@@ -576,7 +576,7 @@ This section adds some upstream dependencies, showing how to build a component w
 
 CAUTION: The direct approach described here is only used to introduce the necessary notions.
 The actual approach prescribed by the process, which should be used, is described later. +
-Since the actual approache might appear less direct due to limitations in the tools, this intermediate step is intended as a gradual explanation.
+Since the actual approach might appear less direct due to limitations in the tools, this intermediate step is intended as a gradual explanation.
 
 CMake find upstream dependencies through invocation of link:https://cmake.org/cmake/help/latest/command/find_package.html[find_package] command.
 It is a central command in CMake, with extensive documentation containing important information for project maintainers (strictly following {Sonat} should nevertheless make it work "out of the mystery box").
@@ -921,7 +921,7 @@ Due to the `find_package()` link:https://cmake.org/cmake/help/latest/command/fin
 this would imply providing CMake with one distinct hint for each component, in each upstream repository.
 
 Instead, {Sonat} relies on the ability of `find_package()` to locate several components under a common top-level package name: +
-This fits naturally with the _anyrepo_ model, as each leaf `CMakelists.txt` will map to a component, and the top level `project()` name (the repository) will map to the package name. +
+This fits naturally with the _anyrepo_ model, as each leaf `CMakeLists.txt` will map to a component, and the top level `project()` name (the repository) will map to the package name. +
 It will notably allow to locate *all components* in *all repositories* by providing <<cmake-single-hint, *a single CMake hint*>>.
 (leveraging the  `<prefix>/<name>*/(lib/<arch>|lib*|share)/cmake/<name>*/` search entry).
 
@@ -1403,7 +1403,7 @@ Distributing the package itself is one step, yet the bigger picture is also conc
 
 For code to actually become sociable, it must scale all the way from only using a handful of dependencies, to being one component in the middle of a many-thousands dependencies graph.
 
-In some organizations, collaborators locally deploy each dependency manually (via compilation or package manager requests).
+In some organisations, collaborators locally deploy each dependency manually (via compilation or package manager requests).
 This approach is manageable only for shallow dependency graphs, or when most direct dependencies are already well behaved sociable components.
 
 There are CMake facilities intended to ease such steps, with the ability to automatically retrieve / build dependencies.
@@ -1412,7 +1412,7 @@ Yet, those automation facilities are usually limited, in the sense that they giv
 Facing the new challenge of distributing components in varying dependency graphs, link:https://en.wikipedia.org/wiki/Separation_of_concerns[*separation of concerns*] is an important consideration:
 
 {Sonat} relies on CMake to do one thing well:: describe the local build process for the repository's component(s) in a portable, tool and platform agnostic textual format. +
-Dependencies management is a separate goal:: retrieving all the artifacts for the dependencies, while handling recursion through the upstream graph (adressing different complications, such as reconciliation of diamond sub-graphs)
+Dependencies management is a separate goal:: retrieving all the artifacts for the dependencies, while handling recursion through the upstream graph (addressing different complications, such as reconciliation of diamond sub-graphs)
 
 When it comes to handling dependencies, a scalable and well-accepted solution is to use on a package manager. +
 In the context of {Sonat}, a package manager should offer those essential features:
@@ -1432,7 +1432,7 @@ In the context of {Sonat}, a package manager should offer those essential featur
 NOTE: Conan is cross-toolset in two ways: it offers link:https://docs.conan.io/en/latest/integrations.html[integrated support for many major tools],
 while also allowing to easily issue system commands to handle specific situations and non-modern code repositories. +
 It notably offers excellent link:https://docs.conan.io/en/latest/integrations/build_system/cmake.html[first-class support for CMake with different generators],
-making it an good choice to distribute CMake based repositories.
+making it a good choice to distribute CMake based repositories.
 
 NOTE: Conan link:https://docs.conan.io/en/latest/getting_started.html[Getting Started] offers a good first-time walkthrough.
 
@@ -1656,7 +1656,7 @@ When using an external {Sonat} component, *this syntax is the natural solution*,
 This inclusion allows the canonical invocations of `find_package()` to correctly find any Conan-retrieved packages.
 
 Yet, further steps are still needed to actually translate the `CONAN_` prefixed variables into variables understood by CMake.
-As discussed above, the plain `cmake` generator is outputing a file already providing the necessary logic (among other things).
+As discussed above, the plain `cmake` generator is outputting a file already providing the necessary logic (among other things).
 
 {Sonat} follows a pragmatic approach, <<conanfile_generators, invoking both Conan generators>> as seen in the recipe,
 and introducing an additional CMake script to glue them together:
@@ -1743,7 +1743,7 @@ since {Sonat} duplicates the component folder exactly for this reason (not being
 Unfortunately, this would raise two problems:
 
 Duplication of information::
-{Sonat} already defines all *usage requirements* at CMake level, having to maintain a second _source of truth_ might lead to discrepencies and maintenance complications.
+{Sonat} already defines all *usage requirements* at CMake level, having to maintain a second _source of truth_ might lead to discrepancies and maintenance complications.
 Granularity mismatch for multi-component projects::
 CMake is defining *usage requirements* per-target, which usually means per-component in {Sonat}.
 Yet, the `cpp_info` configuration is unaware of such component granularity, and {Sonat} single recipe approach defines the Conan requirements globally, at the repository level.
@@ -1834,7 +1834,7 @@ Simple recipe, it builds the test folder via the above `CMakesLists.txt` file.
 No need to explicitly state `requires` of the tested package, Conan will automatically inject it.
 
 CAUTION: The testing recipe could use the base `cmake` generator only, as long as <<conan-friction-consuming-generators, this friction point is handled by the tested recipe>>.
-Sticking to {Sonat}, this testing recipe prefers to use `conan/customconan.cmake` in a similar maner to the tested recipe.
+Sticking to {Sonat}, this testing recipe prefers to use `conan/customconan.cmake` in a similar manner to the tested recipe.
 
 == Usage
 
@@ -1848,7 +1848,7 @@ Getting more general than _cross-tool_ and _cross-platform_ qualities, it is pos
 * General public/end-user (customer, in the marketing sense)
 
 This is a schematic outline, hopefully introducing the most usual situations.
-The following usage recommendations should easily adapat to situations in-between.
+The following usage recommendations should easily adapt to situations in-between.
 
 ==== Prerequisites
 
@@ -1896,7 +1896,7 @@ From here on, it is possible to forget about Conan. The developer can concentrat
 (e.g. via their familiar IDE, if IDE project files were generated by CMake).
 
 Alternatively, to keep it build-system agnostic, CMake might also be invoked to drive the builds.
-This might notably be usefull for automation:
+This might notably be useful for automation:
 
 [source, shell]
 ----
@@ -1928,7 +1928,7 @@ there might be situations where the development process would imply working on m
 
 It extends the <<Development in isolation, above section>>: several independent projects will be cloned and built.
 The initial motivation to work on several projects is their dependency relationship. +
-It implies to provide hints to CMake regarding the lcoation of downstream projects which are manually cloned and built.
+It implies to provide hints to CMake regarding the location of downstream projects which are manually cloned and built.
 This is required so their `find_package` calls can locate the local upstream(s), which are out of Conan's cache.
 
 Assuming a development task implying to work in parallel on the sources of both:
@@ -1979,7 +1979,7 @@ Unless a dependency found in its build tree is a header-only library, it should 
 .Friction point: Distinct dependency graphs
 ****
 One important feature of a package manager is to reconciliate the dependencies version when several paths in the DAG specify the same recipe in but in different versions.
-With this approach, several independent DAGs are generated (one per manually built repository), losing this important feature (because it does not apply across independent graphs boudaries).
+With this approach, several independent DAGs are generated (one per manually built repository), losing this important feature (because it does not apply across independent graphs boundaries).
 ****
 
 .Friction point: The quest for repository component-fluidity
@@ -2060,11 +2060,11 @@ Nevertheless, this example illustrates the applicability of {Sonat} based projec
 If the user is interested in a tool (executable) provided by `beneficialproject`, then link:https://docs.conan.io/en/latest/devtools/running_packages.html[other generators],
 such a virtual environments, will address this situation.
 
-For example, to obtain and invoke the `usefullgenerator` tool in `beneficialproject` on a GNU/Linux flavoured environment:
+For example, to obtain and invoke the `usefulgenerator` tool in `beneficialproject` on a GNU/Linux flavoured environment:
 
     conan install beneficialproject/1.2.0@provider/stable -g virtualrunenv
     source activate_run.sh
-    usefullgenerator --version
+    usefulgenerator --version
     source deactivate_run.sh
 
 NOTE: No global system change are taking place. To install a tool user or system wide would more closely match the <<General public, end-user>> scenario.
