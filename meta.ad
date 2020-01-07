@@ -48,7 +48,10 @@ Additionally, some situations might require co-operation of several projects, th
 ..... Conan's CMake build helper
 ..... Conan's CMake generator
 ..... conan_basic_setup alternative
-.... Testing the recipe #TODO
+.... Testing the recipe
+..... test_package {cpp} consumer
+..... test_package CMake project
+..... test_package recipe
 .... Multi-build type recipe #TODO
 .. Usage
 ... Affinity with different workflows
@@ -105,12 +108,16 @@ The complication of wanting to work on a few closely related components at the s
 
 == TODO
 
+* Is it possible to make an internal link pointing to a given line in a code block?
+If so, reposition [[conanfile_generators]] to be more precise
+
 * Define a style guide
 * Find a good name for the process
 * Describe how the process was designed/refined
 
 Take a look at:
 * https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1
+* https://github.com/lefticus/cppbestpractices/blob/master/02-Use_the_Tools_Available.md
 
 * Proofread code from Distribution section to the end
 
