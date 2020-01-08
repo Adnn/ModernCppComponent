@@ -1,0 +1,126 @@
+== Goals
+
+* Document our current process to implement, build, and distribute reusable C++ software
+* If possible, get collaborators and experts to review the process to enhance the process and get it closer to the state of the art
+* Control fragmentation: encourage and help others to adopt the process or to adapt it.
+Be it beginners just looking for a "ready-to-use" process, or seasoned users trying to review their own process.
+* Explictly record and discuss all difficulties and sub-optimal aspects in the process, to keep a list, as well as having a concrete starting point to discuss those aspects with the different projects (tools, etc.) involved in the process.
+Additionally, some situations might require co-operation of several projects, thus having an external record not owned by any given project issue-tracker could be beneficial and limit duplication.
+
+== Outline
+
+. Modern {cpp} Component
+.. brief
+.. toc
+.. Introduction
+... Context
+... Motivation
+... Philosophy
+.... The best process in the world
+... {cpp} spcial case
+... Audience #TODO
+... Design #TODO
+.. The process
+... Structuring content
+.... Repository model choice
+.... Filesystem organization
+... Building code
+.... Portability considerations
+.... Building with {Sonat}: CMake
+..... Minimal CMake setup
+.... Using upstream dependencies: CMake
+..... Finding dependencies
+..... Consuming dependencies
+..... Putting it together
+... Packaging components (becoming an upstream dependency): CMake
+.... Installing the component files
+.... Preparing a CMake package
+.... Putting it together
+.... Multiple components in a single CMake package
+.... Finding upstream dependencies from a CMake package
+..... Making dependency information available
+.... Putting it together
+... Distribution: Conan
+.... Motivations
+.... Adding Conan recipe
+.... Taking a step back
+.... From Conan options and settings to CMake variables
+..... Conan's CMake build helper
+..... Conan's CMake generator
+..... conan_basic_setup alternative
+.... Testing the recipe
+..... test_package {cpp} consumer
+..... test_package CMake project
+..... test_package recipe
+.... Multi-build type recipe #TODO
+.. Usage
+... Affinity with different workflows
+.... Prerequisites
+... Development
+.... Development in isolation
+.... Publishing the recipe
+.... Development in multiple-repositories
+... Command-line user
+.... Generators
+..... Library
+..... Tool
+.... No published recipe
+... General public
+[[TODO]]
+.. Annexes
+... Automation
+.... Azure pipeline starting process?
+... Conan-ify a non-conan non-cmake external dependency
+
+=== Section structure
+
+
+- Title
+-- Overview
+-- toc
+-- Section
+-- Section
+...
+
+or
+
+- Title
+-- Content
+
+
+== Tooling
+
+The content is written in Asciidoc markup, hosted in a github repository, and publication TBD
+(github should render the content, which might be just what is needed)
+
+== Sources
+* CppCon 2017: Mathieu Ropert “Using Modern CMake Patterns to Enforce a Good Modular Design”
+* C++Now 2017: Daniel Pfeifer “Effective CMake"
+* CppCon 2018: Mateusz Pusz “Git, CMake, Conan - How to ship and reuse our C++ projects”
+* CppCon 2018: John Lakos “C++ Modules and Large-Scale Development”
+* The State of Package Management in C++ - Mathieu Ropert [ACCU 2019]
+
+== Braindump
+
+Mention gitflow?
+The folder duplication in libraries (both build and install tree)
+The complication of wanting to work on a few closely related components at the same time: managing upstreams
+
+== TODO
+
+* Is it possible to make an internal link pointing to a given line in a code block?
+If so, reposition [[conanfile_generators]] to be more precise
+
+* Define a style guide
+* Find a good name for the process
+* Describe how the process was designed/refined
+
+Take a look at:
+* https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1
+* https://github.com/lefticus/cppbestpractices/blob/master/02-Use_the_Tools_Available.md
+
+* Proofread code from Distribution section to the end
+
+* Annex for a naive interface library:
+ * VERSION property not allowed
+ * no "private" requirement (target_include_path)
