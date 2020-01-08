@@ -459,9 +459,10 @@ Daniel Pfeifer offers a great presentation of this topic in the video link:https
 
 The base snippet above does a few things, and is hopefully direct about each:
 
-[cols="2a, 3a"]
+[stripes=none, cols="2a, 3a"]
 |===
-|----
+|
+----
 project(A VERSION "${CMAKE_PROJECT_VERSION}")
 ----
 |Implicitly defines the variables:
@@ -475,7 +476,6 @@ set(${PROJECT_NAME}_HEADERS ...)
 
 set(${PROJECT_NAME}_SOURCES ...)
 ----
-&nbsp;
 |Keeps separate list of headers and sources for the current component.
 
 See link:https://cmake.org/cmake/help/latest/command/list.html[`list`] command for advanced operations.
@@ -485,14 +485,12 @@ add_library(${PROJECT_NAME}
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES})
 ----
-&nbsp;
 |Defines a target named `A` for this component with `add_library`.
 It would build fine without listing the headers, yet doing so ensures they show up in IDEs.
 
 |----
 add_library(myrepo::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 ----
-&nbsp;
 |[[cmake-alias-rationale]]Defines an alias `myrepo::A` for the target, so `A` is accessible to sibling components under namespace `myrepo`. It avoids to wonder "should the namespace be prepended in this situation?", while making it easier to relocate components independently.
 |
 ----
