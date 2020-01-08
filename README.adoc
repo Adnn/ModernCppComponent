@@ -1,6 +1,22 @@
 = Modern C++ Component
+ifdef::env-github[]
+//:imagesdir:
+// https://...
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+ifndef::env-github[]
+//:imagesdir: ./
+endif::[]
+:toc:
+:toc-placement!:
 
 An adaptable approach to build and distribute usable C++ software components
+
+toc::[]
 
 == Introduction
 
