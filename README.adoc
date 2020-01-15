@@ -73,9 +73,10 @@ it becomes the responsibility of the component itself to take extra measures and
 This might contrast with a traditional approach where the burden was on downstream(s) to adapt to the libraries it uses,
 which often lead the organisations adhering to this isolation mental model to stay away from external dependencies as much as possible.
 
-==== The best process in the world
+==== The best process in the world?
 
 > \... actually does not sound anything like this doc.
+> -- Tenacious C
 
 Yet the Platonic ideal sets the cap.
 
@@ -196,10 +197,10 @@ The idea of manually having to clone and separately build a handful of independe
 for even medium-sized applications should trigger the maintainability alarm.
 
 Different approaches and tools exist to manage multi-repos. Git link:https://github.blog/2016-02-01-working-with-submodules[`submodule`] is an easily accessible tool, since it is integrated with core Git installations. Yet, a recurrent criticism is submodules do not scale well as they are unpractical to use.
-In particular, the less orthogonal the submodules/module, the more this can become a problem.
+In particular, the more correlated the submodules/module, the more this can become a problem.
 
 [NOTE]
-.Orthogonality measure
+.Correlation measure
 ====
 Likeliness that changes in entity B would coherently happen alongside changes in entity A.
 ====
@@ -1497,9 +1498,9 @@ class MyRepositoryConan(ConanFile):
     }
 
     # Code dependencies
-    requires = "upstreamone/1.0@one/stable",
+    requires = ("upstreamone/1.0@one/stable",
                "upstreamtwo/[>1.0]@two/stable",
-               "upstreamthree/[~=3.2.5]@three/stable"
+               "upstreamthree/[~=3.2.5]@three/stable")
 
     # Build dependencies
     #   CMake will not need to be installed to build the project
@@ -1678,8 +1679,8 @@ and introducing an additional CMake script to glue them together:
 .conan/customconan.cmake
 [source, cmake]
 ----
-# Made a function to avoid leaking the variables defined within conanbuildinfo.cmake
-function(conan_handle_compiler_settings)
+# Cannot be a function: some invoked macro modify global variables
+macro(conan_handle_compiler_settings)
     include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 
     if(CONAN_EXPORTED)
@@ -1694,7 +1695,7 @@ function(conan_handle_compiler_settings)
     conan_set_std()
     conan_set_libcxx()
     conan_set_vs_runtime()
-endfunction()
+endmacro()
 
 include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 conan_handle_compiler_settings()
@@ -1827,6 +1828,8 @@ from conans import ConanFile, CMake, tools
 class MyRepositoryTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake_paths", "cmake"
+
+    build_requires = "cmake_installer/3.15.4@conan/stable"
 
     def build(self):
         cmake = CMake(self)
