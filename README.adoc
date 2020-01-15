@@ -73,9 +73,10 @@ it becomes the responsibility of the component itself to take extra measures and
 This might contrast with a traditional approach where the burden was on downstream(s) to adapt to the libraries it uses,
 which often lead the organisations adhering to this isolation mental model to stay away from external dependencies as much as possible.
 
-==== The best process in the world
+==== The best process in the world?
 
 > \... actually does not sound anything like this doc.
+> -- Tenacious C
 
 Yet the Platonic ideal sets the cap.
 
@@ -196,10 +197,10 @@ The idea of manually having to clone and separately build a handful of independe
 for even medium-sized applications should trigger the maintainability alarm.
 
 Different approaches and tools exist to manage multi-repos. Git link:https://github.blog/2016-02-01-working-with-submodules[`submodule`] is an easily accessible tool, since it is integrated with core Git installations. Yet, a recurrent criticism is submodules do not scale well as they are unpractical to use.
-In particular, the less orthogonal the submodules/module, the more this can become a problem.
+In particular, the more correlated the submodules/module, the more this can become a problem.
 
 [NOTE]
-.Orthogonality measure
+.Correlation measure
 ====
 Likeliness that changes in entity B would coherently happen alongside changes in entity A.
 ====
