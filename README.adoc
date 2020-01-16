@@ -1807,6 +1807,8 @@ This ensure the include paths are correctly set, and the ability to link the sym
 cmake_minimum_required(VERSION 2.8.12)
 project(PackageTest CXX)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}>)
+
 find_package(MyRepository REQUIRED COMPONENTS A)
 
 add_executable(example example.cpp)
@@ -1815,6 +1817,8 @@ target_link_libraries(example myrepo::A)
 
 Simple CMake project, defining the `example` target to compile the above `example.cpp` file.
 It also finds the component(s) used by the code, and mark them as upstream dependencies for the target.
+
+NOTE: `CMAKE_RUNTIME_OUTPUT_DIRECTORY` is re-defined to its default value, but via a dummy generator expression. This way, multi-configurations generators link:https://cmake.org/cmake/help/latest/prop_tgt/RUNTIME_OUTPUT_DIRECTORY.html[do not append a per-configuration subdirectory].
 
 ===== test_package recipe
 
