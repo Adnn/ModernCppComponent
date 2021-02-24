@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.3] - 2021-02-24
+### Fixed
+- Clarify the text in different locations after proofreading.
+- Fix a few typos.
+
 ## [0.7.2] - 2021-02-17
 ### Added
 - A changelog following [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) convention.
@@ -28,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release of the document
 
-[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.3...HEAD
+[0.7.3]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/Adnn/ModernCppComponent/releases/tag/v0.7.0
