@@ -1506,6 +1506,16 @@ class MyRepositoryConan(ConanFile):
     description = "A Conan recipe for {Sonat} sample repository"
     topics = ("demonstration")
 
+    # Which generators are run when obtaining the code dependencies, before build()
+    generators = "cmake_paths", "cmake"
+
+    # The default "hash" mode would result in different recipe revisions for Linux and Windows
+    # because of difference in line endings
+    revision_mode = "scm"
+
+    # (overridable) defaults for consumers
+    build_policy = "missing"
+
     # Package variability:
     # Changing those values will result in distinct packages for the same recipe
     settings = "os", "compiler", "build_type", "arch"
@@ -1527,12 +1537,6 @@ class MyRepositoryConan(ConanFile):
     #   CMake will not need to be installed to build the project
     #   And if it was installed in a non-compatible version, this will take precedence anyway
     build_requires = "cmake_installer/3.15.4@conan/stable"
-
-    # Which generators are run when obtaining the code dependencies, before build()
-    generators = "cmake_paths", "cmake"
-
-    # (overridable) defaults for consumers
-    build_policy = "missing"
 
 
     # Build procedure: code retrieval
@@ -1581,6 +1585,15 @@ CAUTION: {Sonat} introduces a `cloned_repo` subfolder to clone into.
 Invoking `conan install`, Conan will copy the content of its source folder directly at the root of the build folder.
 If we did not clone in a subfolder, the different files at the root of the repository would appear directly at the root of the build folder, which could augment the risk of filename collision.
 In other words, it ensures an _out of source build_, with the specificity that the source folder is nested under the build folder.
+
+CAUTION: The recipe revision mode is explicitly set to `revision_mode = scm`, instead of the default `hash` mode.
+As its value indicates, the default mode computes the recipe revision by hashing the recipe file. +
+Since hashing notably takes line endings into account, this might result in different revisions being computed
+depending on the host system (CRLF vs CR vs LF line endings) and git's configuration. +
+Having different revisions for what is actually the exact same recipe would be conceptually wrong,
+and could also break the actual distribution via Conan repositories:
+if prebuilt packages for all systems are expected to live under a single recipe revision in the central repository (as is intended),
+then a for systems with a non-matching line ending, the package might not be found under the correct revision.
 
 NOTE: The `shared` option and `build_type` setting are common in recipes, thus Conan implicitly forwards the corresponding definitions to the CMake object.
 On the other hand, the custom `build_tests` option is manually forwarded. This explicit approach allows complete customisation of the CMake variables.

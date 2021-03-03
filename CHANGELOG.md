@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ComponentPackageRootConfig.cmake uses a package name with capitalization
 matching capitalization in find_package() invocation.
 - Conan test package cpp source explicitly returns success from main function.
+- Conan recipe revision is computed from commit ID instead of recipe hash,
+because recipe hash is sensitive to line-endings.
 
 ## [0.7.3] - 2021-02-24
 ### Fixed
