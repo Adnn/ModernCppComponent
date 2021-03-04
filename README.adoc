@@ -127,12 +127,6 @@ It is not trivial to distribute a project that builds easily on all environments
 ****
 ****
 
-=== Design
-
-.TODO
-****
-****
-
 
 
 == The process
@@ -249,8 +243,8 @@ Once defined which component(s) will be held inside a repository, the repository
 CMakeLists.txt (cmr)
 README.{xy}
 cmake/
-toolA/
-toolB/
+toolOne/
+toolTwo/
 ...
 src/
     CMakeLists.txt (cmp)
@@ -703,7 +697,7 @@ set(${PROJECT_NAME}_SOURCES
 )
 
 *find_package(UpstreamOne REQUIRED)
-find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS CompA CompB)
+find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS compA compB)
 find_package(UpstreamThree 3.2.5 EXACT REQUIRED)*
 
 # Creates the library target
@@ -723,8 +717,8 @@ target_include_directories(${PROJECT_NAME}
 *target_link_libraries(${PROJECT_NAME}
     PUBLIC
         nsOne::UpstreamOne
-        nsTwo::CompA
-        nsTwo::CompB
+        nsTwo::compA
+        nsTwo::compB
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
@@ -872,7 +866,7 @@ set(${PROJECT_NAME}_SOURCES
 )
 
 find_package(UpstreamOne REQUIRED)
-find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS CompA CompB)
+find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS compA compB)
 find_package(UpstreamThree 3.2.5 EXACT REQUIRED)
 
 # Creates the library target
@@ -892,8 +886,8 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         nsOne::UpstreamOne
-        nsTwo::CompA
-        nsTwo::CompB
+        nsTwo::compA
+        nsTwo::compB
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
@@ -1072,7 +1066,7 @@ set(${PROJECT_NAME}_SOURCES
 )
 
 find_package(UpstreamOne REQUIRED)
-find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS CompA CompB)
+find_package(UpstreamTwo 1.0 REQUIRED COMPONENTS compA compB)
 find_package(UpstreamThree 3.2.5 EXACT REQUIRED)
 
 # Creates the library target
@@ -1092,8 +1086,8 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         nsOne::UpstreamOne
-        nsTwo::CompA
-        nsTwo::CompB
+        nsTwo::compA
+        nsTwo::compB
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
@@ -1161,7 +1155,7 @@ The calls to `find_package` are moved away from the leaf `CMakeLists.txt` to a c
 [source, cmake]
 ----
 @find_package@(UpstreamOne @REQUIRED@)
-@find_package@(UpstreamTwo 1.0 @REQUIRED@ COMPONENTS CompA CompB)
+@find_package@(UpstreamTwo 1.0 @REQUIRED@ COMPONENTS compA compB)
 @find_package@(UpstreamThree 3.2.5 EXACT @REQUIRED@ @QUIET@)
 ----
 
@@ -1208,8 +1202,8 @@ The package developer must then once again take measures to make sure they are e
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         nsOne::UpstreamOne
-        nsTwo::CompA
-        nsTwo::CompB
+        nsTwo::compA
+        nsTwo::compB
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
@@ -1353,8 +1347,8 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         nsOne::UpstreamOne
-        nsTwo::CompA
-        nsTwo::CompB
+        nsTwo::compA
+        nsTwo::compB
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
