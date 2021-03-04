@@ -209,7 +209,7 @@ In particular, the more correlated the submodules/module, the more this can beco
 [NOTE]
 .Correlation measure
 ====
-Likeliness that changes in entity B would entail changes in entity A.
+Likeliness that changes in entity `B` would entail changes in entity `A`.
 ====
 
 The proposed system recognises the existence of both mono and multi repo,
@@ -218,10 +218,11 @@ placing them as extrema on a line along which organisations are allowed to move 
 .Organically growing codebase
 [%collapsible]
 ====
-Application B can start as a library (libA) and its frontend (B).
+Application *uno* can start as a library `libalpha` and its frontend `uno`.
 Seeing how they are lock-stepped, it makes sense to host both in the same repo (monorepo).
-Then, identified generic functionalities can be moved out of libA in libCommon. libCommon can
-start its existence in the same repo, and later on move to a separate repo to be offered to other internal projects and/or 3rd parties. There is value in adaptability.
+Then, identified generic functionalities can be moved out of `libalpha` in `libcommon`.
+`libcommon` can start its existence in the same repo, and later on move to a separate repo
+to be offered to other internal projects and/or 3rd parties. There is value in adaptability.
 ====
 
 [[anyrepo]]
@@ -249,8 +250,8 @@ toolTwo/
 src/
     CMakeLists.txt (cmp)
     apps/
-        C/
-            C/
+        gamma/
+            gamma/
                 CMakeLists.txt (cmc-C)
                 main.cpp
                 appclass.h
@@ -258,8 +259,8 @@ src/
                 ...
         ...
     libs/
-        A/
-            A/
+        alpha/
+            alpha/
                 CMakeLists.txt (cmc-A)
                 accumulate.h
                 accumulate.cpp
@@ -268,8 +269,8 @@ src/
                 ...
                 subcomponent/
                     ...
-        B/
-            B/
+        beta/
+            beta/
                 CMakeLists.txt (cmc-B)
                 multiply.h
                 ...
@@ -278,7 +279,7 @@ src/
 resources/
 ----
 
-NOTE: See <<duplicated-libname-folder, the rationale behind duplicated `A`, `B` and `C` folders>>.
+NOTE: See <<duplicated-libname-folder, the rationale behind duplicated `alpha`, `beta` and `gamma` folders>>.
 
 NOTE: {Sonat} is intended to be extensible and adaptable. +
 This is notably the case with the filesystem structure.
@@ -401,10 +402,10 @@ It can use basic logic to conditionally add some components (e.g. Making the `te
 .src/CMakeLists.txt
 [source, cmake]
 ----
-add_subdirectory(libs/A/A)
-add_subdirectory(libs/B/B)
+add_subdirectory(libs/alpha/alpha)
+add_subdirectory(libs/beta/beta)
 
-add_subdirectory(apps/C/C)
+add_subdirectory(apps/gamma/gamma)
 
 option(BUILD_tests)
 if (BUILD_tests)
@@ -421,10 +422,10 @@ The process relies on the nested project name as the component's name, and addit
 This is to ensure a DRY solution, in particular when it comes to lists.
 
 
-.src/libs/A/A/CMakeLists.txt (component without upstream dependencies)
+.src/libs/alpha/alpha/CMakeLists.txt (component without upstream dependencies)
 [source, cmake]
 ----
-project(A VERSION "${CMAKE_PROJECT_VERSION}")
+project(alpha VERSION "${CMAKE_PROJECT_VERSION}")
 
 set(${PROJECT_NAME}_HEADERS
     accumulate.h
@@ -472,11 +473,11 @@ The base snippet above does a few things, and is hopefully direct about each:
 |===
 |
 ----
-project(A VERSION "${CMAKE_PROJECT_VERSION}")
+project(alpha VERSION "${CMAKE_PROJECT_VERSION}")
 ----
 |Implicitly defines the variables:
 
-* `PROJECT_NAME` initialised to "A"
+* `PROJECT_NAME` initialised to "alpha"
 * `${PROJECT_NAME}_VERSION` initialised to the version provided to the root project() call
 
 |
@@ -494,13 +495,13 @@ add_library(${PROJECT_NAME}
             ${${PROJECT_NAME}_HEADERS}
             ${${PROJECT_NAME}_SOURCES})
 ----
-|Defines a target named `A` for this component with `add_library`.
+|Defines a target named `alpha` for this component with `add_library`.
 It would build fine without listing the headers, yet doing so ensures they show up in IDEs.
 
 |----
 add_library(myrepo::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 ----
-|[[cmake-alias-rationale]]Defines an alias `myrepo::A` for the target, so `A` is accessible to sibling components under namespace `myrepo`. It avoids to wonder "should the namespace be prepended in this situation?", while making it easier to relocate components independently.
+|[[cmake-alias-rationale]]Defines an alias `myrepo::alpha` for the target, so `alpha` is accessible to sibling components under namespace `myrepo`. It avoids to wonder "should the namespace be prepended in this situation?", while making it easier to relocate components independently.
 |
 ----
 target_include_directories(${PROJECT_NAME}
@@ -535,8 +536,8 @@ this way the current component is the only component available in the added incl
 
 CAUTION: [[cmake-private-might-forward]]This describe the high level semantic from CMake user perspective. +
 In practice, `PRIVATE` requirement might still be propagated (in whole or in parts) to downstreams when the implementation dictates so.
- For example this is mandatory when linking to a static library target A, itself privately linking to another static library target B.
- Even though downstream code is not aware of B, linking downstream to A will also require linking downstream to symbols in B.
+ For example this is mandatory when linking to a static library target `alpha`, itself privately linking to another static library target `beta`.
+ Even though downstream code is not aware of `beta`, linking downstream to `alpha` will also require linking downstream to symbols in `beta`.
 See https://cmake.org/pipermail/cmake/2016-May/063400.html.
 
 |
@@ -680,11 +681,11 @@ TIP: Even though a syntax without specifying the scope is available, always expl
 
 The updated leaf `CMakeLists.txt` for a component using dependencies would look something like:
 
-.src/libs/A/A/CMakeLists.txt
+.src/libs/alpha/alpha/CMakeLists.txt
 [source, cmake]
 [subs=+quotes]
 ----
-project(A VERSION "${CMAKE_PROJECT_VERSION}")
+project(alpha VERSION "${CMAKE_PROJECT_VERSION}")
 
 set(${PROJECT_NAME}_HEADERS
     accumulate.h
@@ -722,7 +723,7 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
-        myrepo::B)*
+        myrepo::beta)*
 
 # Defines target properties
 set_target_properties(${PROJECT_NAME}
@@ -730,8 +731,8 @@ set_target_properties(${PROJECT_NAME}
         VERSION "${${PROJECT_NAME}_VERSION}")
 ----
 
-NOTE: It is also possible to specify normal (non-imported) targets defined by other components in the same repository, as is the case in this example with `myrepo::B`.
-For uniformity, we are using the `ALIAS`ed target for B (following <<cmake-alias-rationale, the rationale>>.)
+NOTE: It is also possible to specify normal (non-imported) targets defined by other components in the same repository, as is the case in this example with `myrepo::beta`.
+For uniformity, we are using the `ALIAS`ed target for `beta` (following <<cmake-alias-rationale, the rationale>>.)
 
 
 [[cmake-package]]
@@ -849,11 +850,11 @@ link:https://cmake.org/cmake/help/v3.14/module/CMakePackageConfigHelpers.html#co
 
 For a repository containing a *single component*, an updated leaf `CMakeLists.txt` able to produce a CMake package would look something like:
 
-.src/libs/A/A/CMakeLists.txt
+.src/libs/alpha/alpha/CMakeLists.txt
 [source, cmake]
 [subs=+quotes]
 ----
-project(A VERSION "${CMAKE_PROJECT_VERSION}")
+project(alpha VERSION "${CMAKE_PROJECT_VERSION}")
 
 set(${PROJECT_NAME}_HEADERS
     accumulate.h
@@ -891,7 +892,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
-        myrepo::B)
+        myrepo::beta)
 
 # Defines target properties
 set_target_properties(${PROJECT_NAME}
@@ -937,7 +938,7 @@ be discussed with CMake experts and maintainers to see if this situation can be 
 
 ==== Multiple components in a single CMake package
 
-The approach described above will produce a CMake package with the name of the leaf project (`A`, in this specific case).
+The approach described above will produce a CMake package with the name of the leaf project (`alpha`, in this specific case).
 This is satisfying for single component repositories, yet a complication arises in the case of multiple components per repo.
 
 When applied in a repository containing many components, this produces as many packages as there are components.
@@ -1049,11 +1050,11 @@ This multi-component transformation also induces two changes in the leaf CMakeLi
 * The version file is already generated at the top level, no need to version components individually
 * The install destination must be adapted to match the root project name.
 
-.src/libs/A/A/CMakeLists.txt
+.src/libs/alpha/alpha/CMakeLists.txt
 [source, cmake]
 [subs=+quotes]
 ----
-project(A VERSION "${CMAKE_PROJECT_VERSION}")
+project(alpha VERSION "${CMAKE_PROJECT_VERSION}")
 
 set(${PROJECT_NAME}_HEADERS
     accumulate.h
@@ -1091,7 +1092,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         nsThree::UpstreamThree
     INTERFACE
-        myrepo::B)
+        myrepo::beta)
 
 # Defines target properties
 set_target_properties(${PROJECT_NAME}
@@ -1151,7 +1152,7 @@ The calls to `find_package` are moved away from the leaf `CMakeLists.txt` to a c
 * `REQUIRED`
 * `QUIET`
 
-.src/libs/A/A/CMakeFinds.cmake.in
+.src/libs/alpha/alpha/CMakeFinds.cmake.in
 [source, cmake]
 ----
 @find_package@(UpstreamOne @REQUIRED@)
@@ -1183,7 +1184,7 @@ In production code, this function should likely be factorised outside of any lea
 In substance, this generates a file with a content strictly equal to what was removed from the leaf `CMakeLists.txt`, and includes it: functionally equivalent.
 Yet, it will now be possible to reuse this information from the `AConfig.cmake` file after configuring it with different substitutions.
 
-Yet, this does not address the case of internal dependencies: in the current example `A` having a requirement for `myrepo::B` is an internal dependency. +
+Yet, this does not address the case of internal dependencies: in the current example `alpha` having a requirement for `myrepo::beta` is an internal dependency. +
 Since those targets are already defined under the same repository / same root `CMakeLists.txt`, they are not found via calls to `find_package` in their sibling components (in the build tree).
 On the other hand, when exporting a `xxxConfig.cmake` file, those sibling targets are not defined anymore.
 The package developer must then once again take measures to make sure they are explicitly found in the install tree.
@@ -1194,7 +1195,7 @@ The package developer must then once again take measures to make sure they are e
 [subs=+quotes]
 ----
 *set(${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES
-    B)*
+    beta)*
 
 #...
 
@@ -1288,11 +1289,11 @@ NOTE: `configure_file(...PackageConfig.cmake.in ...)` was moved inside this func
 
 The install and packaging logic proposed by {Sonat} is now complete, which gives the following final leaf `CMakeLists.txt` for a multi-components repository:
 
-.src/libs/A/A/CMakeLists.txt
+.src/libs/alpha/alpha/CMakeLists.txt
 [source, cmake]
 [subs=+quotes]
 ----
-project(A VERSION "${CMAKE_PROJECT_VERSION}")
+project(alpha VERSION "${CMAKE_PROJECT_VERSION}")
 
 set(${PROJECT_NAME}_HEADERS
     accumulate.h
@@ -1314,7 +1315,7 @@ endfunction()
 local_find()*
 
 *set(${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES
-    B)*
+    beta)*
 
 *function(config_find)
     set (find_package "find_dependency")
@@ -1399,7 +1400,7 @@ Could CMake provide the actual list of internal and external dependencies *which
 ****
 See: https://stackoverflow.com/q/58221190/1027706
 
-In short, `find_dependency(B)` indeed forwards `REQUIRED` from the calling `find_package(A)`, which makes the call fails in B, without the promised diagnostic mentioning that "A cannot be used without B".
+In short, `find_dependency(beta)` indeed forwards `REQUIRED` from the calling `find_package(alpha)`, which makes the call fails in beta, without the promised diagnostic mentioning that "alpha cannot be used without beta".
 
 A more "natural" approach might actually be not to forward it, since `REQUIRED` actually only applies to the calling `find_package`, which might have independently `REQUIRED` and optional dependencies.
 ****
@@ -1781,7 +1782,7 @@ This works consistently without any extra effort, *as longs as all downstream(s)
 
 Conan also offers a mechanism to specify a package usage requirements, via link:https://docs.conan.io/en/latest/reference/conanfile/attributes.html#cpp-info[`cpp_info` to be populated in `package_info()`].
 When this attribute is correctly configured, the package can be consumed via other Conan generators.
-For the repository in this guide, it would at least require to list individual include paths for the library components (`include/A` and `include/B`),
+For the repository in this guide, it would at least require to list individual include paths for the library components (`include/alpha` and `include/beta`),
 since {Sonat} duplicates the component folder exactly for this reason (not being able to access separate components from a common include path). There might also be compiler flags, etc.
 
 Unfortunately, this would raise two problems:
@@ -1816,8 +1817,8 @@ Such folder usually consists of 3 files:
 
 .conan/test_package/example.cpp
 ----
-#include <A/accumulate.h>
-#include <A/sum.h>
+#include <alpha/accumulate.h>
+#include <alpha/sum.h>
 
 #include <cstdlib>
 
@@ -1841,10 +1842,10 @@ project(PackageTest CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY $<1:${CMAKE_CURRENT_BINARY_DIR}>)
 
-find_package(MyRepository REQUIRED COMPONENTS A)
+find_package(MyRepository REQUIRED COMPONENTS alpha)
 
 add_executable(example example.cpp)
-target_link_libraries(example myrepo::A)
+target_link_libraries(example myrepo::alpha)
 ----
 
 Simple CMake project, defining the `example` target to compile the above `example.cpp` file.
