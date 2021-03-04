@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.4] - 2021-03-04
 ### Fixed
 - ComponentPackageRootConfig.cmake uses a package name with capitalization
 matching capitalization in find_package() invocation.
@@ -39,7 +41,8 @@ because recipe hash is sensitive to line-endings.
 ### Added
 - Initial release of the document
 
-[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.4...HEAD
+[0.7.4]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.0...v0.7.1
