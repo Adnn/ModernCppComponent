@@ -387,6 +387,8 @@ This top-level file sets the default (likely minimal requirement) {cpp} standard
 NOTE: Making `CMAKE_CXX_STANDARD` a cache variable would allow to remove the `if`.
 Yet it is not known of which nature the variable could already be. (e.g. Conan `basic_conan_setup()` sets it as non-cache)
 
+NOTE: {Sonat} recommends that the root `project()` name <<cmake-naming-convention, starts with an uppercase letter>>.
+
 .TODO
 ****
 Find a way to control warning level and enable _warning as errors_ for all / some targets, without making it a build requirement.
@@ -479,6 +481,9 @@ project(alpha VERSION "${CMAKE_PROJECT_VERSION}")
 
 * `PROJECT_NAME` initialised to "alpha"
 * `${PROJECT_NAME}_VERSION` initialised to the version provided to the root project() call
+
+NOTE: {Sonat} recommends that each CMake target (and associated leaf `project()`) name
+<<cmake-naming-convention, starts with a lowercase letter>>.
 
 |
 ----
@@ -628,7 +633,7 @@ find_package(UpstreamName [version [EXACT]] [REQUIRED])
 `version`:: can be specified to add a lower requirement on the version number of the dependency. `EXACT` additional keyword makes it that only the exact version is accepted.
 
 
-A second type of package can be distinguished, which propose <<Multiple components,
+A second type of package can be distinguished, which propose <<multiple-components,
 multiple components>> to be included separately. In this case, the components to find are listed after `COMPONENTS` keyword (or `OPTIONAL_COMPONENTS` for non-required components).
 The syntax becomes:
 
@@ -936,6 +941,7 @@ For the moment, it is recommended to factorise this logic in a custom CMake func
 be discussed with CMake experts and maintainers to see if this situation can be streamlined.
 ****
 
+[[multiple-components]]
 ==== Multiple components in a single CMake package
 
 The approach described above will produce a CMake package with the name of the leaf project (`alpha`, in this specific case).
@@ -2016,6 +2022,7 @@ Thanks to the adopted folder structure, this *single hint* is enough to find any
 
 This logic can be extended to explicitly build an arbitrary number of dependencies instead of relying on Conan to provide them.
 
+[[cmake-explicit-upstream-path]]
 [CAUTION]
 .install tree vs. build tree
 ====
@@ -2160,6 +2167,36 @@ Might be illustrated with adding custom CMake targets to produce Windows `msi` i
 
 
 == Annexes
+
+=== Naming conventions
+
+Naming and syntax convetions are not the intended scope of {Sonat}. +
+Yet, it strongly encourages to follow existing convention when they exist:
+
+ * Conan package reference are entirely lower-case (e.g. `beneficialproject/1.2.0@company/stable`)
+
+[[cmake-naming-convention]]
+==== CMake package with multiple components
+
+Additionnally, there is a situation where using a predefined naming convention can make development more flexible.
+When a repository is a <<multiple-components, multi-component CMake package>>,
+one of the components might be named like the repository
+(e.g. if there is one central component, with some peripheral helper components).
+
+To allow for this scenario without introducing collisions at the CMake `find_package()` level,
+{Sonat} makes the following recommendations:
+
+* the root `project()` name always start with an uppercase letter.
+* each CMake target (which will map to components in the package) always start with a lowercase letter.
+
+This results in `find_package()` calls looking like:
+
+    find_package(Math COMPONENTS bignumber math)
+
+And the CMake path variable used to <<cmake-explicit-upstream-path, find a dependency in its build tree>> has the form:
+
+    Math_DIR=${path_to_math_buildtree}
+
 
 === Automated QA
 

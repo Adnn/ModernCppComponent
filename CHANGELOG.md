@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- A naming convention for CMake packages and their components.
+
+### Changed
+- A, B and C CMake targets are renamed alpha, beta and gamma respectively.
 
 ## [0.7.4] - 2021-03-04
 ### Fixed
