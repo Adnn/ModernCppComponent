@@ -1941,7 +1941,7 @@ cd beneficialproject/build
 conan install ../conan
 
 # Generate project files
-cmake -DCMAKE_PROJECT_beneficialproject_INCLUDE=conan/customconan.cmake \
+cmake -DCMAKE_PROJECT_BeneficialProject_INCLUDE=conan/customconan.cmake \
       -DCMAKE_INSTALL_PREFIX=${local_sdk_folder}/beneficialproject \
       ..
 ----
@@ -2001,7 +2001,7 @@ cd profitableapp/build
 # Install a restricted set of dependencies
 *conan install ../conan/conanfile-dev.txt*
 
-cmake .. -DPROJECT_profitableapp_INCLUDE=conan/customconan.cmake \
+cmake .. -DPROJECT_ProfitableApp_INCLUDE=conan/customconan.cmake \
          -DCMAKE_INSTALL_PREFIX=${local_sdk_folder}/profitableapp
          *-DCMAKE_PREFIX_PATH=${local_sdk_folder}*
 ----
@@ -2025,7 +2025,7 @@ This means that, before any edition applied to them becomes available to downstr
 In certain situations, it might be preferable to find the manually built upstream dependencies in their build tree.
 In this case, the *single* value provided to `CMAKE_PREFIX_PATH` should be replaced with *distinct definitions* for each upstream.
 In the current example, it would be replaced with +
-`-Dbeneficialproject_DIR=${build_dir}`.
+`-DBeneficialProject_DIR=${build_dir}`.
 Unless a dependency found in its build tree is a header-only library, it should still be rebuilt (but not necessarily installed anymore) in order for changes to propagate downstream.
 ====
 
