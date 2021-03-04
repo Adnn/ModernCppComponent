@@ -14,7 +14,7 @@ endif::[]
 :toc:
 :toc-placement!:
 
-An adaptable approach to build and distribute usable C++ software components
+An adaptable approach to build and distribute usable {cpp} software components
 
 toc::[]
 
@@ -187,7 +187,7 @@ for the changed recipe.
 [%collapsible]
 ====
 Another illustration is how monorepo makes it harder for a single team to change compiler in isolation, even in the context of a stable ABI.
-Since the new compiler might be more strict regarding C++ standard, it could raise new errors and warnings in the codebase.
+Since the new compiler might be more strict regarding {cpp} standard, it could raise new errors and warnings in the codebase.
 The compiler change is applied to an entire repository at once:
 
 * In a multirepo, the team will be able to adapt its own component in isolation.
@@ -313,7 +313,7 @@ Like the rest of the code, it should be treated as an evolving piece of informat
 
 ==== Portability considerations
 
-Standard C++ is a cross platform language, with an ever growing ecosystem of tools. Yet the limiting factor for portability often turns out to be the build system.
+Standard {cpp} is a cross platform language, with an ever growing ecosystem of tools. Yet the limiting factor for portability often turns out to be the build system.
 
 Achieving a cross-platform and cross-toolset (code editors, compilers and analysers) build system, while keeping it DRY, is a notable challenge.
 
@@ -382,7 +382,7 @@ add_subdirectory(src)
 
 With the `add_subdirectory(src)` directive, CMake executes the named `CMakeLists.txt` in the `src/` subdirectory (cmp).
 
-This top-level file sets the default (likely minimal requirement) C++ standard, unless a value was already provided for `CMAKE_CXX_STANDARD` variable.
+This top-level file sets the default (likely minimal requirement) {cpp} standard, unless a value was already provided for `CMAKE_CXX_STANDARD` variable.
 
 NOTE: Making `CMAKE_CXX_STANDARD` a cache variable would allow to remove the `if`.
 Yet it is not known of which nature the variable could already be. (e.g. Conan `basic_conan_setup()` sets it as non-cache)
@@ -1387,7 +1387,7 @@ As already evoked, the leaf `CMakeLists.txt` now contains even more generic boil
 
 Is there a canonical way to reduce this?
 Would there be interest in turning the repetitive code into an official CMake macro?
-Even the explicit code is able to adapt to many more different situations, it feels like this case might be a sane default starting point for modern C++ libraries.
+Even the explicit code is able to adapt to many more different situations, it feels like this case might be a sane default starting point for modern {cpp} libraries.
 
 Additionally, the current solution to keep the list of external and internal dependencies DRY is a hack, which might be wasteful
 (all the dependencies will be "found" by the package consumers, even the `PRIVATE` dependencies that are actually not forwarded):
@@ -1604,7 +1604,7 @@ While CMake manages the details of the build system for an isolated repository, 
 
 ** The code is unique, but there is a lot of variability in the produced artifacts.
 A first source of variability is the target environment: {cpp} model is write once, build everywhere (i.e. many times).
-There is also variability in how a project is built even for a single defined environment (Debug/Release, compiler flags, C++ standard version, optional components, etc.)
+There is also variability in how a project is built even for a single defined environment (Debug/Release, compiler flags, {cpp} standard version, optional components, etc.)
 ** Building might require to satisfy an arbitrarily complicated dependency graph.
 
 Conan tool is addressing these two issues: it resolves the dependency graphs,
