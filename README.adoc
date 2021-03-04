@@ -1007,43 +1007,45 @@ to exist in `cmake` folder:
 .cmake/ComponentPackageRootConfig.cmake.in
 [source, cmake]
 ----
-if (NOT @CMAKE_PROJECT_NAME@_FIND_COMPONENTS)
-    set(@CMAKE_PROJECT_NAME@_NOT_FOUND_MESSAGE "The \"@CMAKE_PROJECT_NAME@\" package requires at least one component")
-    set(@CMAKE_PROJECT_NAME@_FOUND False)
+if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS)
+    set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "The '${CMAKE_FIND_PACKAGE_NAME}' package requires at least one component")
+    set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
     return()
 endif()
 
 include(CMakeFindDependencyMacro)
-foreach(module ${@CMAKE_PROJECT_NAME@_FIND_COMPONENTS})
+foreach(module ${${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS})
     set (_config_location "${CMAKE_CURRENT_LIST_DIR}")
     # find_dependency should forward the QUIET and REQUIRED arguments
     find_dependency(${module} CONFIG
                     PATHS "${_config_location}"
                     NO_DEFAULT_PATH)
-    unset(_config_location)
     if (NOT ${module}_FOUND)
-        if (@CMAKE_PROJECT_NAME@_FIND_REQUIRED_${module})
-            string(CONCAT _@CMAKE_PROJECT_NAME@_NOTFOUND_MESSAGE
-                   "Failed to find @CMAKE_PROJECT_NAME@ component \"${module}\" "
+        if (${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED_${module})
+            string(CONCAT _${CMAKE_FIND_PACKAGE_NAME}_NOTFOUND_MESSAGE
+                   "Failed to find ${CMAKE_FIND_PACKAGE_NAME} component \"${module}\" "
                    "config file at \"${_config_location}\"\n")
-        elseif(NOT @CMAKE_PROJECT_NAME@_FIND_QUIETLY)
-            message(WARNING "Failed to find @CMAKE_PROJECT_NAME@ component \"${module}\" "
+        elseif(NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
+            message(WARNING "Failed to find ${CMAKE_FIND_PACKAGE_NAME} component \"${module}\" "
                              "config file at \"${_config_location}\"")
         endif()
     endif()
+
+    unset(_config_location)
 endforeach()
 
-if (_@CMAKE_PROJECT_NAME@_NOTFOUND_MESSAGE)
-    set(@CMAKE_PROJECT_NAME@_NOT_FOUND_MESSAGE "${_@CMAKE_PROJECT_NAME@_NOTFOUND_MESSAGE}")
-    set(@CMAKE_PROJECT_NAME@_FOUND False)
+if (_${CMAKE_FIND_PACKAGE_NAME}_NOTFOUND_MESSAGE)
+    set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE "${_${CMAKE_FIND_PACKAGE_NAME}_NOTFOUND_MESSAGE}")
+    set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
 endif()
 ----
 
-NOTE: Execution of this Config script might be recursive via the find_dependency call,
-in cases where components in the same project depend on each other.
-Since all invocations occur in the same "variable scope", the `unset(_config_location)` would also
-erase the value in the "calling context", even if unset would occur after the loop completes.
-For this reason, re-set `_config_location` variable at each iteration.
+NOTE: Execution of this Config script might be recursive via the `find_dependency` call,
+in cases where components of a given CMake package depend on other components inside the same package.
+Since the different recursive invocations occur in the same "variable scope",
+the `unset(_config_location)` occurring in a nested call before returning to its caller would also erase this value for said caller.
+For this reason, re-set `_config_location` variable at each iteration of the `foreach` loop
+(in case a nested call in a previous iteration of the loop has unset `_config_location`).
 
 This template leverages the config files still produced and installed by each individual component in order to locate them,
 via the call to link:https://cmake.org/cmake/help/latest/module/CMakeFindDependencyMacro.html[`find_dependency()`].
@@ -1504,6 +1506,16 @@ class MyRepositoryConan(ConanFile):
     description = "A Conan recipe for {Sonat} sample repository"
     topics = ("demonstration")
 
+    # Which generators are run when obtaining the code dependencies, before build()
+    generators = "cmake_paths", "cmake"
+
+    # The default "hash" mode would result in different recipe revisions for Linux and Windows
+    # because of difference in line endings
+    revision_mode = "scm"
+
+    # (overridable) defaults for consumers
+    build_policy = "missing"
+
     # Package variability:
     # Changing those values will result in distinct packages for the same recipe
     settings = "os", "compiler", "build_type", "arch"
@@ -1525,12 +1537,6 @@ class MyRepositoryConan(ConanFile):
     #   CMake will not need to be installed to build the project
     #   And if it was installed in a non-compatible version, this will take precedence anyway
     build_requires = "cmake_installer/3.15.4@conan/stable"
-
-    # Which generators are run when obtaining the code dependencies, before build()
-    generators = "cmake_paths", "cmake"
-
-    # (overridable) defaults for consumers
-    build_policy = "missing"
 
 
     # Build procedure: code retrieval
@@ -1579,6 +1585,15 @@ CAUTION: {Sonat} introduces a `cloned_repo` subfolder to clone into.
 Invoking `conan install`, Conan will copy the content of its source folder directly at the root of the build folder.
 If we did not clone in a subfolder, the different files at the root of the repository would appear directly at the root of the build folder, which could augment the risk of filename collision.
 In other words, it ensures an _out of source build_, with the specificity that the source folder is nested under the build folder.
+
+CAUTION: The recipe revision mode is explicitly set to `revision_mode = scm`, instead of the default `hash` mode.
+As its value indicates, the default mode computes the recipe revision by hashing the recipe file. +
+Since hashing notably takes line endings into account, this might result in different revisions being computed
+depending on the host system (CRLF vs CR vs LF line endings) and git's configuration. +
+Having different revisions for what is actually the exact same recipe would be conceptually wrong,
+and could also break the actual distribution via Conan repositories:
+if prebuilt packages for all systems are expected to live under a single recipe revision in the central repository (as is intended),
+then a for systems with a non-matching line ending, the package might not be found under the correct revision.
 
 NOTE: The `shared` option and `build_type` setting are common in recipes, thus Conan implicitly forwards the corresponding definitions to the CMake object.
 On the other hand, the custom `build_tests` option is manually forwarded. This explicit approach allows complete customisation of the CMake variables.
@@ -1810,10 +1825,13 @@ Such folder usually consists of 3 files:
 #include <A/accumulate.h>
 #include <A/sum.h>
 
+#include <cstdlib>
+
 int main()
 {
     myns::accumulate(3);
     myns::sum(myns::sum(3, 2), 1);
+    return EXIT_SUCCESS;
 }
 ----
 

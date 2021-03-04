@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2021-03-04
+### Fixed
+- ComponentPackageRootConfig.cmake uses a package name with capitalization
+matching capitalization in find_package() invocation.
+- Conan test package cpp source explicitly returns success from main function.
+- Conan recipe revision is computed from commit ID instead of recipe hash,
+because recipe hash is sensitive to line-endings.
+
 ## [0.7.3] - 2021-02-24
 ### Fixed
 - Clarify the text in different locations after proofreading.
@@ -15,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - A changelog following [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) convention.
 - Automate release and Github page publication, based on Github Actions.
-- A script to pepare and trigger the release+publish process (repo-admin/release.py)
+- A script to pepare and trigger the release+publish process (repo-admin/release.py).
 
 ### Fixed
 - Fix Conan test_package executable location for multi-config generators
@@ -33,7 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release of the document
 
-[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.4...HEAD
+[0.7.4]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.0...v0.7.1
