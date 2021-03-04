@@ -1017,6 +1017,18 @@ endif()
 include(CMakeFindDependencyMacro)
 foreach(module ${${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS})
     set (_config_location "${CMAKE_CURRENT_LIST_DIR}")
+
+    # Error when a component has exactly the same identifier as the package_name
+    # (would first find the current Config.cmake, because xxx_DIR variable is already set)
+    if(module STREQUAL ${CMAKE_FIND_PACKAGE_NAME})
+        set(${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE
+            "The '${CMAKE_FIND_PACKAGE_NAME}' package cannot list a component with identical name.\
+             Use at least a distinct capitalization \
+             (advice: package names start with capital, components do not).")
+        set(${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
+        return()
+    endif()
+
     # find_dependency should forward the QUIET and REQUIRED arguments
     find_dependency(${module} CONFIG
                     PATHS "${_config_location}"
