@@ -14,6 +14,9 @@ with exactly matching names.
 - A, B and C CMake targets are renamed alpha, beta and gamma respectively.
 - Conan installer for CMake uses updated "Conan Center" reference (without `@conan/stable` suffix).
 
+### Fixed
+- Instruction to use `ARCH_INDEPENDENT` when producing a CMake version file for `INTERFACE`  targets.
+
 ## [0.7.4] - 2021-03-04
 ### Fixed
 - ComponentPackageRootConfig.cmake uses a package name with capitalization

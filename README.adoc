@@ -579,6 +579,7 @@ an unusual folder hierarchy.
 
 Applications are created via link:https://cmake.org/cmake/help/latest/command/add_executable.html[`add_executable`]. When making a native GUI application link:https://cmake.org/cmake/help/latest/prop_tgt/WIN32_EXECUTABLE.html#prop_tgt:WIN32_EXECUTABLE[`WIN_32`] and/or link:https://cmake.org/cmake/help/latest/prop_tgt/MACOSX_BUNDLE.html#prop_tgt:MACOSX_BUNDLE[`MACOSX_BUNDLE`] should be added after the application name.
 
+[[header-only-cmake-target]]
 ====== Header only CMake target
 
 Header only libraries are called link:https://cmake.org/cmake/help/latest/command/add_library.html#id6[Interface Libraries] in CMake.
@@ -850,6 +851,13 @@ NOTE: It currently seems this file introduces an extra indirection for no reason
 
 NOTE: `AnyNewerVersion` can be replaced by any valid value for
 link:https://cmake.org/cmake/help/v3.14/module/CMakePackageConfigHelpers.html#command:write_basic_package_version_file[the `COMPATIBILITY` argument].
+
+IMPORTANT: For targets where the produced artifact will be the same for all supported systems,
+i.e. <<header-only-cmake-target, header only CMake targets>>, the extra argument `ARCH_INDEPENDENT`
+should be given to `write_basic_package_version_file`. +
+Failing to do so, when distributing the same package for all systems,
+said package will break on architectures that do not match
+the architecture where the unique package was produced.
 
 ==== Putting it together
 
