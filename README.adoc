@@ -1549,7 +1549,7 @@ class MyRepositoryConan(ConanFile):
     # Build dependencies
     #   CMake will not need to be installed to build the project
     #   And if it was installed in a non-compatible version, this will take precedence anyway
-    build_requires = "cmake_installer/3.15.4@conan/stable"
+    build_requires = "cmake_installer/3.15.7"
 
 
     # Build procedure: code retrieval
@@ -1884,7 +1884,7 @@ class MyRepositoryTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake_paths", "cmake"
 
-    build_requires = "cmake_installer/3.15.4@conan/stable"
+    build_requires = "cmake_installer/3.15.7"
 
     def build(self):
         cmake = CMake(self)

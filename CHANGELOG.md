@@ -12,6 +12,7 @@ with exactly matching names.
 
 ### Changed
 - A, B and C CMake targets are renamed alpha, beta and gamma respectively.
+- Conan installer for CMake uses updated "Conan Center" reference (without `@conan/stable` suffix).
 
 ## [0.7.4] - 2021-03-04
 ### Fixed
