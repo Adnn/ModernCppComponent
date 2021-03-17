@@ -1265,7 +1265,9 @@ This is achieved by configuring the `CMakeFinds.cmake.in` template with differen
 function(config_find)
     set (find_package "find_dependency")
     # Configure in build tree
-    configure_file(CMakeFinds.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake @ONLY)
+    configure_file(CMakeFinds.cmake.in
+                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}FindUpstream.cmake
+                   @ONLY)
 endfunction()
 config_find()
 ----
@@ -1277,10 +1279,10 @@ This new file has to be deployed to the install tree:
 [source, cmake]
 [subs=+quotes]
 ----
-    install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake
             # Optional version file if single component repository
-            *${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake*
-            DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
+            *${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}FindUpstream.cmake*
+            DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}/${PROJECT_NAME})
 ----
 
 The root template `PackageConfig.cmake.in` has to be edited to include this file:
@@ -1304,19 +1306,21 @@ This takes place in the leaf `CMakeLists.txt`:
 ----
 function(config_find)
     set (find_package "find_dependency")
-    configure_file(CMakeFinds.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake @ONLY)
+    configure_file(CMakeFinds.cmake.in
+                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}FindUpstream.cmake
+                   @ONLY)
 
     *list(JOIN ${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES " " _joined_components)
     set(FIND_INTERNAL_COMPONENTS
         "find_dependency(${CMAKE_PROJECT_NAME} CONFIG COMPONENTS ${_joined_components})")
     configure_file(${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
-                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake
                    @ONLY)*
 endfunction()
 config_find()
 ----
 
-NOTE: `configure_file(...PackageConfig.cmake.in ...)` was moved inside this function, to see the variable.
+NOTE: `configure_file(...PackageConfig.cmake.in ...)` was moved inside this function, to access the `FIND_INTERNAL_COMPONENTS` variable.
 
 ==== Putting it together
 
@@ -1352,13 +1356,15 @@ local_find()*
 
 *function(config_find)
     set (find_package "find_dependency")
-    configure_file(CMakeFinds.cmake.in ${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake @ONLY)
+    configure_file(CMakeFinds.cmake.in
+                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}FindUpstream.cmake
+                   @ONLY)
 
     list(JOIN ${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES " " _joined_components)
     set(FIND_INTERNAL_COMPONENTS
         "find_dependency(${CMAKE_PROJECT_NAME} CONFIG COMPONENTS ${_joined_components})")
     configure_file(${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
-                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+                   ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake
                    @ONLY)
 endfunction()
 config_find()*
@@ -1399,18 +1405,18 @@ install(FILES ${${PROJECT_NAME}_HEADERS}
 
 # build tree
 export(EXPORT ${PROJECT_NAME}Targets
-       FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+       FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Targets.cmake
        NAMESPACE myrepo::)
 *#configure_file(... PackageConfig.cmake.in ...) moved in config_find() above*
 
 # install tree
 install(EXPORT ${PROJECT_NAME}Targets
         FILE ${PROJECT_NAME}Targets.cmake
-        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}/${PROJECT_NAME}
         NAMESPACE myrepo::)
-install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-        *${CMAKE_BINARY_DIR}/${PROJECT_NAME}FindUpstream.cmake*
-        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake
+        *${CMAKE_BINARY_DIR}/${PROJECT_NAME}/${PROJECT_NAME}FindUpstream.cmake*
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME}/${PROJECT_NAME})
 ----
 
 
