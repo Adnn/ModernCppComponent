@@ -1024,7 +1024,8 @@ endif()
 
 include(CMakeFindDependencyMacro)
 foreach(module ${${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS})
-    set (_config_location "${CMAKE_CURRENT_LIST_DIR}")
+    set (_config_location "${CMAKE_CURRENT_LIST_DIR}/${module}")
+
 
     # Error when a component has exactly the same identifier as the package_name
     # (would first find the current Config.cmake, because xxx_DIR variable is already set)
@@ -1071,10 +1072,16 @@ For this reason, re-set `_config_location` variable at each iteration of the `fo
 This template leverages the config files still produced and installed by each individual component in order to locate them,
 via the call to link:https://cmake.org/cmake/help/latest/module/CMakeFindDependencyMacro.html[`find_dependency()`].
 
-This multi-component transformation also induces two changes in the leaf CMakeLists.txt compared to what was presented above:
+NOTE: The template is looking for the individual components config files in a *subfolder* with the component name,
+by calling `find_dependency` with a `PATHS` value of `${CMAKE_CURRENT_LIST_DIR}/*${module}*`. +
+This extra folder is added in case one of the components has the same name than the root CMake project, <<cmake-naming-convention, with only differences in capitalization>>.
+In such situtation, the  the root project `XxxConfig.cmake` file and the component `xxxConfig.cmake` file would collide on case-insensitive file systems if they were both placed in the same folder.
 
-* The version file is already generated at the top level, no need to version components individually
-* The install destination must be adapted to match the root project name.
+This multi-component transformation also induces three changes in the leaf CMakeLists.txt compared to what was presented above:
+
+* The version file is already generated at the top level, no need to version components individually.
+* The config files must be placed in a subfolder with the component name (see note above).
+* The install destination must be adapted to match the root project name and component subfolder.
 
 .src/libs/alpha/alpha/CMakeLists.txt
 [source, cmake]
@@ -1131,10 +1138,10 @@ install(FILES ${${PROJECT_NAME}_HEADERS}
 
 # build tree
 export(EXPORT ${PROJECT_NAME}Targets
-       FILE ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Targets.cmake
+       FILE ${CMAKE_BINARY_DIR}/*${PROJECT_NAME}/*${PROJECT_NAME}Targets.cmake
        NAMESPACE myrepo::)
 configure_file(${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
-               ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+               ${CMAKE_BINARY_DIR}/*${PROJECT_NAME}/*${PROJECT_NAME}Config.cmake
                @ONLY)
 
 *# Removed lines*
@@ -1142,11 +1149,11 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/PackageConfig.cmake.in
 # install tree
 install(EXPORT ${PROJECT_NAME}Targets
         FILE ${PROJECT_NAME}Targets.cmake
-        DESTINATION lib/cmake/*${CMAKE_PROJECT_NAME}*
+        DESTINATION lib/cmake/*${CMAKE_PROJECT_NAME}/${PROJECT_NAME}*
         NAMESPACE myrepo::)
-install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+install(FILES ${CMAKE_BINARY_DIR}/*${PROJECT_NAME}/*${PROJECT_NAME}Config.cmake
               *# Removed line*
-        DESTINATION lib/cmake/*${CMAKE_PROJECT_NAME}*)
+        DESTINATION lib/cmake/*${CMAKE_PROJECT_NAME}/${PROJECT_NAME}*)
 ----
 
 [[cmake-package-upstream-dependencies]]
