@@ -13,6 +13,8 @@ with exactly matching names.
 ### Changed
 - A, B and C CMake targets are renamed alpha, beta and gamma respectively.
 - Conan installer for CMake uses updated "Conan Center" reference (without `@conan/stable` suffix).
+- CMake packages with multiple components now have a separate subfolder
+for each component config files.
 
 ### Fixed
 - Instruction to use `ARCH_INDEPENDENT` when producing a CMake version file for `INTERFACE`  targets.
