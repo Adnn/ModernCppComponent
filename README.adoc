@@ -1577,7 +1577,6 @@ class MyRepositoryConan(ConanFile):
     #   Git's repository origin remote and its current revision are captured by recipe export
     scm = {
         "type": "git",
-        "subfolder": "cloned_repo",
         "url": "auto",
         "revision": "auto",
         "submodule": "recursive",
@@ -1588,7 +1587,7 @@ class MyRepositoryConan(ConanFile):
     def _configure_cmake(self):
         cmake = CMake(self)
         cmake.definitions["BUILD_tests"] = self.options.build_tests
-        cmake.configure(source_folder="cloned_repo")
+        cmake.configure()
         return cmake
 
 
@@ -1615,11 +1614,6 @@ In particular, the build and packaging procedures are short, thanks to link:http
 . In each case, a `CMake` Python object is instantiated, its attributes defined from the provided settings and options, then it is configured.
 . `build()` or `install()` method is invoked according to the current step. Packaging leverages the installation logic provided by CMake through the `install` target.
 
-CAUTION: {Sonat} introduces a `cloned_repo` subfolder to clone into.
-Invoking `conan install`, Conan will copy the content of its source folder directly at the root of the build folder.
-If we did not clone in a subfolder, the different files at the root of the repository would appear directly at the root of the build folder, which could augment the risk of filename collision.
-In other words, it ensures an _out of source build_, with the specificity that the source folder is nested under the build folder.
-
 CAUTION: The recipe revision mode is explicitly set to `revision_mode = scm`, instead of the default `hash` mode.
 As its value indicates, the default mode computes the recipe revision by hashing the recipe file. +
 Since hashing notably takes line endings into account, this might result in different revisions being computed
@@ -1632,6 +1626,16 @@ then a for systems with a non-matching line ending, the package might not be fou
 NOTE: The `shared` option and `build_type` setting are common in recipes, thus Conan implicitly forwards the corresponding definitions to the CMake object.
 On the other hand, the custom `build_tests` option is manually forwarded. This explicit approach allows complete customisation of the CMake variables.
 The documentation provides link:https://docs.conan.io/en/latest/reference/build_helpers/cmake.html#definitions[the list of automatic variables].
+
+NOTE: Until v0.7, {Sonat} introduced a `cloned_repo` subfolder to clone into.
+The rationale was that: when invoking `conan install`, Conan will copy the content of its source
+folder directly at the root of the build folder.
+With this `cloned_repo` subfolder, the different files at the root of the repository would not
+be copied directly at the root of the build folder, reducing the risk of filename collision with build files. +
+ +
+This `cloned_repo` subfolder has been deprecated, because it breaks Conan commands where
+the source folder is explicitly provided via the `-sf` command line arguments.
+(Usually pointing it to a development folder, not containing this articifial `cloned_repo` subfolder).
 
 ==== Taking a step back
 
@@ -1785,9 +1789,9 @@ from conans import ConanFile, CMake, tools
     def _configure_cmake(self):
         cmake = CMake(self)
         *cmake.definitions["CMAKE_PROJECT_MyRepository_INCLUDE"] = \
-            path.join(self.source_folder, "cloned_repo", "conan", "customconan.cmake")*
+            path.join(self.source_folder, "conan", "customconan.cmake")*
         cmake.definitions["BUILD_tests"] = self.options.build_tests
-        cmake.configure(source_folder="cloned_repo")
+        cmake.configure()
         return cmake
 
     ...
@@ -2062,7 +2066,7 @@ This logic can be extended to explicitly build an arbitrary number of dependenci
 By setting `CMAKE_PREFIX_PATH` to the install folder, the manually built upstream dependencies are found in their *install tree*.
 This means that, before any edition applied to them becomes available to downstream(s), they must first invoke their `install` target (e.g. `cmake --build . --target install`)
 
-In certain situations, it might be preferable to find the manually built upstream dependencies in their build tree.
+In certain situations, it might be preferable to find the manually built upstream dependencies in their *build tree*.
 In this case, the *single* value provided to `CMAKE_PREFIX_PATH` should be replaced with *distinct definitions* for each upstream.
 In the current example, it would be replaced with +
 `-DBeneficialProject_DIR=${build_dir}`.

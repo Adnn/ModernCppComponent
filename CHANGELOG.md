@@ -19,6 +19,9 @@ for each component config files.
 ### Fixed
 - Instruction to use `ARCH_INDEPENDENT` when producing a CMake version file for `INTERFACE`  targets.
 
+## Removed
+- Conan recipe does not clone projects into a `cloned_repo` subfolder anymore.
+
 ## [0.7.4] - 2021-03-04
 ### Fixed
 - ComponentPackageRootConfig.cmake uses a package name with capitalization
