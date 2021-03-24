@@ -1215,7 +1215,7 @@ NOTE: The sole purpose of defining a function here instead of inlining its conte
 In production code, this function should likely be factorised outside of any leaf `CMakeLists.txt`, and reused.
 
 In substance, this generates a file with a content strictly equal to what was removed from the leaf `CMakeLists.txt`, and includes it: functionally equivalent.
-Yet, it will now be possible to reuse this information from the `AConfig.cmake` file after configuring it with different substitutions.
+Yet, it will now be possible to reuse this information from the `alphaConfig.cmake` file after configuring it with different substitutions.
 
 Yet, this does not address the case of internal dependencies: in the current example `alpha` having a requirement for `myrepo::beta` is an internal dependency. +
 Since those targets are already defined under the same repository / same root `CMakeLists.txt`, they are not found via calls to `find_package` in their sibling components (in the build tree).
@@ -1244,13 +1244,13 @@ target_link_libraries(${PROJECT_NAME}
         *${${PROJECT_NAME}_INTERNAL_INTERFACE_DEPENDENCIES}*)
 ----
 
-This also achieves functional equivalence to the previous solution, with the added ability to reuse this information for the generated `AConfig.cmake` file.
+This also achieves functional equivalence to the previous solution, with the added ability to reuse this information for the generated `alphaConfig.cmake` file.
 
 NOTE: The `myrepo::` namespace is not directly prepended to the value(s) when the list is `set()`. +
 This list will also be used as a list of components in a `find_dependency` call,
 and components names in this context cannot be prefixed with the namespace.
 
-Now, the dependencies information has to be made available and consumed by the package `AConfig.cmake` file.
+Now, the dependencies information has to be made available and consumed by the package `alphaConfig.cmake` file.
 
 ===== Making dependency information available
 
