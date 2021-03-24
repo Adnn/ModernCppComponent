@@ -15,6 +15,8 @@ with exactly matching names.
 - Conan installer for CMake uses updated "Conan Center" reference (without `@conan/stable` suffix).
 - CMake packages with multiple components now have a separate subfolder
 for each component config files.
+- CMake dependencies within the same repositories are now handled more uniformly
+with the external dependencies.
 
 ### Fixed
 - Instruction to use `ARCH_INDEPENDENT` when producing a CMake version file for `INTERFACE`  targets.
