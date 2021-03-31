@@ -72,6 +72,38 @@ with service providers (CI/CD, package hosting, static analysis, etc.).
 This allows to point to an unambigous reference, and eases onboarding new developpers,
 without your organization having to produce and maintain an internal document.
 
+[[special_case]]
+=== {cpp} special case ===
+
+Many high level languages are able to provide sociable components quite naturally, without requiring to first agree on some external process.
+Or they have one (a few) de-facto standard.
+
+In addition to the fact that the {cpp} standard does not make any prescription, {cpp} (as other native languages) is a special case.
+It is not trivial to distribute a project that builds easily on all environments, while it is close to impossible to distribute pre-built objects for all environments due to the combinatorial explosion of build parameters:
+
+* Project versions
+* Static / Shared libraries
+* Compilers, and compilers' versions
+* Standard library
+* Language version
+* The compilation flags galore, which are also compiler dependent
+** Debug, Release, MinSize, and a few other build types
+** Optimisation level
+** ...
+* Calling conventions
+* The upstream dependency-diamond (two separate components might rely on the same upstream library)
+* Code instrumentation
+* ...
+
+When developing sociable code, this is a strong motivation to ensure the component
+can easily build on consumers' site.
+Ideally supporting as much as the _usual_ parameters as feasible.
+
+Additionally, once the build process is made reliable, repeatable and consistent,
+releasing feels safer and tends to happen more often. +
+In parallel, growing confidence in the ability for downstreams to conduct correct and identifiable
+builds means less pressure to host and distribute a growing number of combinations with each iteration.
+
 === Philosophy
 
 Producing sociable components might require some change in the usual approach:
@@ -104,39 +136,6 @@ Let's establish them as goals for the process:
 
 The actual system will not be able to strictly enforce all goals at once, but they remain excellent
 parameters to consider along the way, in order to make informed engineering decisions and trade-offs.
-
-
-[[special_case]]
-=== {cpp} special case ===
-
-Many high level languages are able to provide sociable components quite naturally, without requiring to first agree on some external process.
-Or they have one (a few) de-facto standard.
-
-In addition to the fact that the {cpp} standard does not make any prescription, {cpp} (as other native languages) is a special case.
-It is not trivial to distribute a project that builds easily on all environments, while it is close to impossible to distribute pre-built objects for all environments due to the combinatorial explosion of build parameters:
-
-* Project versions
-* Static / Shared libraries
-* Compilers, and compilers' versions
-* Standard library
-* Language version
-* The compilation flags galore, which are also compiler dependent
-** Debug, Release, MinSize, and a few other build types
-** Optimisation level
-** ...
-* Calling conventions
-* The upstream dependency-diamond (two separate components might rely on the same upstream library)
-* Code instrumentation
-* ...
-
-When developing sociable code, this is a strong motivation to ensure the component
-can easily build on consumers' site.
-Ideally supporting as much as the _usual_ parameters as feasible.
-
-Additionally, once the build process is made reliable, repeatable and consistent,
-releasing feels safer and tends to happen more often. +
-In parallel, growing confidence in the ability for downstreams to conduct correct and identifiable
-builds means less pressure to host and distribute a growing number of combinations with each iteration.
 
 === Audience
 

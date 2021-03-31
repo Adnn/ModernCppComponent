@@ -18,6 +18,7 @@ with exactly matching names.
 for each component config files.
 - CMake dependencies within the same repositories are now handled more uniformly
 with the external dependencies.
+- Re-order "Philosophy" after "C++ special case".
 
 ### Fixed
 - Instruction to use `ARCH_INDEPENDENT` when producing a CMake version file for `INTERFACE`  targets.
