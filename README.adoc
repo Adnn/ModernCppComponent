@@ -44,9 +44,11 @@ native software with the following properties:
 
 In the current era of Modern {cpp}, the language itself leads a potential change in the mindset of {cpp} developers.
 Those changes are pervading the {cpp} ecosystem and tooling.
-This document does not explore the language itself, but how to actually achieve and take advantage of the properties in the above list, by relying on modern tools.
+This document does not explore the language itself, but how to actually achieve and take advantage of the properties in the above list,
+by relying on modern tools.
 
-Equally important is hopefully being able to **convey the appropriate mindset**, so those properties are both understood and desired.
+Equally important is hopefully being able to **convey the appropriate mindset**,
+so those properties are both understood and desired.
 
 There is no standard, no undisputed approach, and no silver-bullet.
 But there are solutions with varying levels of traction and growth,
@@ -63,8 +65,12 @@ Reaching a satisfying yet adaptable infrastructure requires a lot of research, p
 Adopting a common and predefined plan greatly reduce the upfrong cost, with other advantages:
 
 * Having *good defaults* saves on initial setup and discussions (i.e. https://www.youtube.com/watch?v=XkDEzfpdcSg&feature=youtu.be&t=195[avoid bike-shedding]). The value added part is the software, not its building and packaging logic.
-* Having a common base gives better chance at *interoperability*.
-* Someone already *documented the process* for you, and you might not even have to maintain this document.
+* Having a common base gives better chance at *interoperability* of discrete software packages.
+* Sharing tools and practices gives more chance to find *native* (and better tested) *support*
+with service providers (CI/CD, package hosting, static analysis, etc.).
+* Someone already *documented the process* for you, with changes appearing in separate versions.
+This allows to point to an unambigous reference, and eases onboarding new developpers,
+without your organization having to produce and maintain an internal document.
 
 === Philosophy
 
@@ -111,15 +117,26 @@ It is not trivial to distribute a project that builds easily on all environments
 
 * Project versions
 * Static / Shared libraries
-* ABIs (compilers, and compilers' versions)
+* Compilers, and compilers' versions
 * Standard library
-* The gazillion compilation flags, which are also compiler dependent
+* Language version
+* The compilation flags galore, which are also compiler dependent
 ** Debug, Release, MinSize, and a few other build types
 ** Optimisation level
 ** ...
+* Calling conventions
 * The upstream dependency-diamond (two separate components might rely on the same upstream library)
 * Code instrumentation
 * ...
+
+When developing sociable code, this is a strong motivation to ensure the component
+can easily build on consumers' site.
+Ideally supporting as much as the _usual_ parameters as feasible.
+
+Additionally, once the build process is made reliable, repeatable and consistent,
+releasing feels safer and tends to happen more often. +
+In parallel, growing confidence in the ability for downstreams to conduct correct and identifiable
+builds means less pressure to host and distribute a growing number of combinations with each iteration.
 
 === Audience
 

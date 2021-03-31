@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A naming convention for CMake packages and their components.
 - Warning message if calling find_package() for a component within a CMake package
 with exactly matching names.
+- A few more motivations and benefits.
 
 ### Changed
 - A, B and C CMake targets are renamed alpha, beta and gamma respectively.
