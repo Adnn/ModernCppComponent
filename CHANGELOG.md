@@ -23,7 +23,7 @@ with the external dependencies.
 ### Fixed
 - Instruction to use `ARCH_INDEPENDENT` when producing a CMake version file for `INTERFACE`  targets.
 
-## Removed
+### Removed
 - Conan recipe does not clone projects into a `cloned_repo` subfolder anymore.
 
 ## [0.7.4] - 2021-03-04
