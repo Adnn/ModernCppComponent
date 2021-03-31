@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2021-03-31
+### Added
+- A naming convention for CMake packages and their components.
+- Warning message if calling find_package() for a component within a CMake package
+with exactly matching names.
+- A few more motivations and benefits.
+
+### Changed
+- A, B and C CMake targets are renamed alpha, beta and gamma respectively.
+- Conan installer for CMake uses updated "Conan Center" reference (without `@conan/stable` suffix).
+- CMake packages with multiple components now have a separate subfolder
+for each component config files.
+- CMake dependencies within the same repositories are now handled more uniformly
+with the external dependencies.
+- Re-order "Philosophy" after "C++ special case".
+
+### Fixed
+- Instruction to use `ARCH_INDEPENDENT` when producing a CMake version file for `INTERFACE`  targets.
+
+### Removed
+- Conan recipe does not clone projects into a `cloned_repo` subfolder anymore.
+
 ## [0.7.4] - 2021-03-04
 ### Fixed
 - ComponentPackageRootConfig.cmake uses a package name with capitalization
@@ -41,7 +63,8 @@ because recipe hash is sensitive to line-endings.
 ### Added
 - Initial release of the document
 
-[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.4...HEAD
+[Unreleased]: https://github.com/Adnn/ModernCppComponent/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.4...v0.8.0
 [0.7.4]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/Adnn/ModernCppComponent/compare/v0.7.1...v0.7.2

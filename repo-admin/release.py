@@ -3,6 +3,7 @@
 import argparse
 from datetime import date
 from packaging import version
+import os
 import re
 import subprocess
 
@@ -24,7 +25,11 @@ def previous_version(content):
 
 def comparison_url(previous, current=None):
     origin_remote = subprocess.check_output(["git", "remote", "get-url", "origin"]).decode('utf-8')
-    base = re.search("git@github.com:(.+)\.git", origin_remote).group(1)
+    match = re.search("git@github.com:(.+)\.git", origin_remote)
+    if match is None:
+        raise Exception("Remote '{}' does not have the expected format for a Github ssh url."
+                            .format(origin_remote.rstrip(os.linesep)))
+    base = match.group(1)
     current = "v{}".format(current) if current else "HEAD"
     if previous:
         return "https://github.com/{}/compare/v{}...{}".format(base, previous, current)
