@@ -137,6 +137,9 @@ Let's establish them as goals for the process:
 The actual system will not be able to strictly enforce all goals at once, but they remain excellent
 parameters to consider along the way, in order to make informed engineering decisions and trade-offs.
 
+> link:https://youtu.be/k99_qbB2FvM?t=3565[We have to work with what we have]
+> -- Mathieu Ropert, The state of package management in C++ (ACCU 2019)
+
 === Audience
 
 .TODO
@@ -155,6 +158,7 @@ Find a good short name for the process: Sonat will do for now.
 ****
 
 > link:https://www.youtube.com/watch?v=S4QSKLXdTtA&feature=youtu.be&t=134[Please do not partition our {cpp} development environment even more]
+> -- Mateusz Pusz, Git, CMake, Conan - How to ship and reuse our C++ projects (CppCon 2018)
 
 The tools recommendation is the same as in Mateusz Pusz presentation above (there is hope for a status quo):
 [cols=2*]
