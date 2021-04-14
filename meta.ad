@@ -94,16 +94,39 @@ The content is written in Asciidoc markup, hosted in a github repository, and pu
 (github should render the content, which might be just what is needed)
 
 == Sources
-* CppCon 2017: Mathieu Ropert “Using Modern CMake Patterns to Enforce a Good Modular Design”
-* C++Now 2017: Daniel Pfeifer “Effective CMake"
-* CppCon 2018: Mateusz Pusz “Git, CMake, Conan - How to ship and reuse our C++ projects”
-* CppCon 2018: John Lakos “C++ Modules and Large-Scale Development”
-* The State of Package Management in C++ - Mathieu Ropert [ACCU 2019]
+* CppCon 2017: Mathieu Ropert "Using Modern CMake Patterns to Enforce a Good Modular Design"
+* C++Now 2017: Daniel Pfeifer "Effective CMake"
+* CppCon 2018: Mateusz Pusz "Git, CMake, Conan - How to ship and reuse our C++ projects"
+  * 32:13: "A package channel is the state of the packaging code, not of the packaged project."
+    Is that really the intent??
+* CppCon 2018: John Lakos "C++ Modules and Large-Scale Development"
+
+=== ACCU 2019: Mathieu Ropert "The State of Package Management in C++"
+
+Here are my notes:
+
+Provide motivation to actually use 3rd party packages.
+
+C++ special case: disparity of build systems (note really due to the fact its native, more the absence of standard in a looong existing language)
+
+Advantages: Developers choice. (and in the current situation, you need more incentive for develpers to pick this company overs the many others)
+
+Feature toggles:
+limit them!
+Fail when a feature cannot be built because of missing dep, do not implicitly disable
+toggles are OFF by default
+
+Better solution, separate libs for separate feats (only build the satisfied libs). I.e. hard dependencies on each individual lib
+
+Don't override ABI impacting features:
+Use actual CMake variables controlling them
+If no dedicated variable is available, make it a custom cmake parameter, giving a chance to package managers to control them
+
+Not trying to set a standard, even less a new standard. Propose a process, leveraging existing practices (already proven in the community), allowing to package new projects, and inter-operable with pre-existing projects without imposing them to apply this process.
 
 == Braindump
 
 Mention gitflow?
-The folder duplication in libraries (both build and install tree)
 The complication of wanting to work on a few closely related components at the same time: managing upstreams
 
 == TODO
@@ -118,8 +141,6 @@ If so, reposition [[conanfile_generators]] to be more precise
 Take a look at:
 * https://gist.github.com/mbinna/c61dbb39bca0e4fb7d1f73b0d66a4fd1
 * https://github.com/lefticus/cppbestpractices/blob/master/02-Use_the_Tools_Available.md
-
-* Proofread code from Distribution section to the end
 
 * Annex for a naive interface library:
  * VERSION property not allowed
